@@ -8,38 +8,30 @@ function save_options() {
     var key_field = document.getElementById("api_key");
     var api_key = key_field.value;
 
-    // Clear the storage so we don't persist old data.
-    chrome.storage.sync.remove("api_key", function() {
+    chrome.alarms.clear("refresh");
 
-        // Clear our local cached data
-        chrome.storage.local.clear();
+    // Test out the new api key.
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+        var json = xhr.responseText;
+        json = JSON.parse(json);
 
-        // While we're at it, clear our refresh alarm as well.
-        chrome.alarms.clear("refresh");
-
-        // Test out the new api key.
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            var json = xhr.responseText;
-            json = JSON.parse(json);
-
-            if (json.error) {
-                // If there's an error, update the badge.
-                chrome.extension.getBackgroundPage().update_badge('!');
-                // Also, notify the user.
-                show_status('Sorry, that API key isn\'t valid. Please try again!');
-            } else {
-                // Store the api key in Chrome Sync.
-                chrome.storage.sync.set({"api_key": api_key}, function() {
-                    // Update status to let user know options were saved.
-                    show_status('Your options have been saved. Thanks, ' + String(json.user_information.username) + '!');
-                });
-            }
-        };
-        var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
-        xhr.open("GET", url);
-        xhr.send();
-    });
+        if (json.error) {
+            // If there's an error, update the badge.
+            chrome.extension.getBackgroundPage().update_badge('!');
+            // Also, notify the user.
+            show_status('Sorry, that API key isn\'t valid. Please try again!');
+        } else {
+            // Store the api key in Chrome Sync.
+            chrome.storage.local.set({"api_key": api_key}, function() {
+                // Update status to let user know options were saved.
+                show_status('Your options have been saved. Thanks, ' + String(json.user_information.username) + '!');
+            });
+        }
+    };
+    var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
+    xhr.open("GET", url);
+    xhr.send();
 
     // Save notification options.
     save_notifications();
@@ -52,7 +44,7 @@ function save_options() {
 // Save update interval.
 function save_update_interval() {
   var update_elem = document.getElementById("update_interval");
-  chrome.storage.sync.set({"update_interval":parseInt(update_elem.value, 10)});
+  chrome.storage.local.set({"update_interval":parseInt(update_elem.value, 10)});
 }
 
 // Save notification options.
@@ -60,7 +52,7 @@ function save_notifications() {
     var notif_elems = document.getElementsByName("notifications");
     for (var i = 0; i < notif_elems.length; i++) {
         if (notif_elems[i].type === "radio" && notif_elems[i].checked) {
-            chrome.storage.sync.set({"notifications":notif_elems[i].value});
+            chrome.storage.local.set({"notifications":notif_elems[i].value});
             return;
         }
     }
@@ -68,14 +60,14 @@ function save_notifications() {
 
 // Restore all options to their form elements.
 function restore_options() {
-  restore_notifications();
-  restore_update_interval();
-  restore_api_key();
+    restore_notifications();
+    restore_update_interval();
+    restore_api_key();
 }
 
 // Restore API key text box.
 function restore_api_key() {
-    chrome.storage.sync.get("api_key", function(data) {
+    chrome.storage.local.get("api_key", function(data) {
         var api_key = data.api_key;
         // If no API key is stored, leave the text box blank.
         // We don't set a default value for the API key because it must be set
@@ -90,7 +82,7 @@ function restore_api_key() {
 
 // Restore notification radio buttons.
 function restore_notifications() {
-    chrome.storage.sync.get("notifications", function(data) {
+    chrome.storage.local.get("notifications", function(data) {
         var notifications = data.notifications;
 
         // If notifications hasn't been set yet, default it to off
@@ -106,11 +98,11 @@ function restore_notifications() {
             }
         }
     });
-}
+};
 
 // Restore update interval dropdown.
 function restore_update_interval() {
-    chrome.storage.sync.get("update_interval", function(data) {
+    chrome.storage.local.get("update_interval", function(data) {
         if (!data.update_interval) {
             chrome.storage.sync.set({"update_interval": 1});
             data.update_interval = 1;
@@ -133,8 +125,15 @@ function show_status(status) {
     }, 4000);
 }
 
+function clear_options() {
+    chrome.storage.local.clear();
+    show_status('Cleared local storage!');
+    location.reload();
+}
+
 function bind_save() {
     document.querySelector('#save').addEventListener('click', save_options);
+    document.querySelector('#reset').addEventListener('click', clear_options);
 }
 
 document.addEventListener('DOMContentLoaded', restore_options);

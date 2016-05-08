@@ -8,7 +8,7 @@ var availableReviews = document.getElementById('available-count');
 
 var observer = new MutationObserver(function reviewSessionCallback() {
     if (availableReviews) {
-        chrome.extension.sendMessage({reviews_available: parseInt(availableReviews.innerText, 10)});
+        chrome.runtime.sendMessage({reviews_available: parseInt(availableReviews.innerText, 10)});
     }
 });
 

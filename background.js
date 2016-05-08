@@ -7,13 +7,15 @@ var REFRESH_ALARM = 'refresh';
 
 // Pull new data from the API
 function fetch_reviews() {
-    chrome.storage.sync.get("api_key", function(data) {
+    chrome.storage.local.get(["api_key", "last_grab"], function(data) {
         var api_key = data.api_key;
+        var last_grab = data.last_grab;
+        var now = Date.now();
         if (!api_key) {
             // If the API key isn't set, we can't do anything
             update_title('Click here to enter your API key.');
             update_badge('!');
-        } else {
+        } else if (!last_grab || now - last_grab <= 60000) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 // Parse the JSON
@@ -28,12 +30,17 @@ function fetch_reviews() {
 
                     // Set the next review date
                     set_next_review(json.requested_information.next_review_date);
+
+                    chrome.storage.local.set({
+                        "lessons_available": json.requested_information.lessons_available,
+                        "last_grab": now;
+                    });
                 }
             };
             var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
             xhr.open("GET", url);
             xhr.send();
-        }
+        };
     });
 }
 
@@ -52,7 +59,8 @@ function set_next_review(datetime) {
     chrome.storage.local.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
-        if (new_datetime > Date.now()) {
+        // 5 seconds of fuzziness
+        if (new_datetime > Date.now() + 5000) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
         } else {
@@ -88,9 +96,9 @@ function set_review_count(newReviewCount) {
 }
 
 function set_repeating_alarm() {
-    chrome.storage.sync.get('update_interval', function(data) {
+    chrome.storage.local.get('update_interval', function(data) {
         if (!data.update_interval) {
-            chrome.storage.sync.set({'update_interval': 1});
+            chrome.storage.local.set({'update_interval': 1});
             data.update_interval = 1;
         }
         chrome.alarms.create(REFRESH_ALARM, {
@@ -116,13 +124,9 @@ function show_notification() {
       message: "You have new reviews on WaniKani!",
       iconUrl: "icon_128.png"
     };
-    chrome.storage.sync.get("notifications", function(data) {
+    chrome.storage.local.get("notifications", function(data) {
         if (data.notifications && data.notifications === "on") {
-            chrome.notifications.create(
-                "review",
-                opt,
-                function() {} // we don't need the callback, but it provides compatibility with old Chrome
-            );
+            chrome.notifications.create("review", opt);
         }
     });
 }
@@ -143,34 +147,41 @@ function update_title(type, content) {
     var name = chrome.i18n.getMessage('wanikaninotify_name');
     if (type === 'date') {
         titleString = 'Next Review: ';
-        if (content > Date.now()) {
+        if (content > Date.now() + 5000) {
             titleString += new Date(content).toString();
         } else {
             titleString += 'Now';
         }
     } else if (type === 'string') {
         titleString = content;
+    } else {
+        titleString = type;
     }
     chrome.browserAction.setTitle({'title': name + ' - ' + titleString});
 }
 
 // Open the options page on install.
-chrome.runtime.onInstalled.addListener(function (details) {
-    if (details.reason === "install") {
-        chrome.tabs.create({url: "options.html"});
-    }
-});
+if (typeof chrome.runtime.onInstalled !== "undefined") {
+    chrome.runtime.onInstalled.addListener(function (details) {
+        if (details.reason === "install") {
+            chrome.runtime.openOptionsPage();
+        }
+    });
+};
 
 // When the extension's icon is clicked:
 chrome.browserAction.onClicked.addListener(function() {
     // If no API key is saved, redirect to the options page. Else open a tab to WaniKani.
-    chrome.storage.sync.get("api_key", function(data) {
+    chrome.storage.local.get(["api_key", "reviews_available"], function(data) {
         var api_key = data.api_key;
+        var reviews_available = data.reviews_available;
         if (!api_key) {
-            chrome.tabs.create({url: "options.html"});
-        } else {
+            chrome.runtime.openOptionsPage();
+        } else if (!reviews_available || reviews_available === 0) {
             chrome.tabs.create({url: "https://www.wanikani.com"});
-        }
+        } else {
+            chrome.tabs.create({url: "https://www.wanikani.com/review/session"});
+        };
     });
 });
 
@@ -189,7 +200,7 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
 });
 
 // If the content page sends a message, update local data.
-chrome.extension.onMessage.addListener(function(request) {
+chrome.runtime.onMessage.addListener(function(request) {
     if (typeof request.reviews_available !== "undefined" ) {
         set_review_count(request.reviews_available);
     }
