@@ -8,7 +8,7 @@ var API_VERSION = 'v1.4';
 var WANIKANI_URL = 'https://www.wanikani.com';
 
 // Pull new data from the API
-function fetch_reviews() {
+function fetch_reviews(force=true) {
     chrome.storage.local.get(["api_key", "last_grab"], function(data) {
         var api_key = data.api_key;
         var last_grab = data.last_grab;
@@ -17,7 +17,7 @@ function fetch_reviews() {
             // If the API key isn't set, we can't do anything
             update_title('string', 'Click here to enter your API key.');
             update_badge('!');
-        } else if (!last_grab || now - last_grab <= 60000) {
+        } else if (force || !last_grab || now - last_grab >= 60000) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 // Parse the JSON
@@ -44,7 +44,9 @@ function fetch_reviews() {
             var url = WANIKANI_URL + "/api/" + API_VERSION + "/user/" + encodeURIComponent(api_key) + "/study-queue";
             xhr.open("GET", url);
             xhr.send();
-        };
+        } else {
+            set_repeating_alarm();
+        }
     });
 }
 
@@ -228,4 +230,4 @@ chrome.storage.onChanged.addListener(function(changes) {
 });
 
 timed_log("background.js fetch_reviews");
-fetch_reviews();
+fetch_reviews(force=false);
