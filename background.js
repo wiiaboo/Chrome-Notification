@@ -214,6 +214,13 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
 chrome.runtime.onMessage.addListener(function(request) {
     if (typeof request.reviews_available !== "undefined" ) {
         set_review_count(request.reviews_available);
+        if (request.reviews_available === 0) {
+            var wait_for_update = chrome.i18n.getMessage('wait_for_update');
+            timed_log("onMessage fetch_reviews");
+            update_title('string', wait_for_update);
+            // allow 10 seconds for remote server to update values
+            set_one_time_alarm(Date.now() + 10000);
+        }
     }
 });
 
