@@ -6,27 +6,21 @@
     <script src="options.js"></script>
 </head>
 
-<body>
+<body style="max-width: 30%; font-family: sans-serif; margin: auto">
 
-<h3>WaniKani Notifier</h3>
-To find your API key, go to <a href="https://www.wanikani.com/account" target="_blank">WaniKani Settings</a> and copy the field labeled "Public API Key" into the box below.
-<br><br>
-<label for="api_key">Enter your API key here:</label>
+<h3 style="text-align: center">WaniKani Notifier</h3>
+<br>
+<label for="api_key"><a href="https://www.wanikani.com/account" target="_blank" title="Go to your WaniKani account Settings for your Public API Key.">Public API key</a>:</label>
 <input id="api_key" size="32" />
-
 <br>
-<br>
-
 <label for="update_interval">Update interval:</label>
 <select id="update_interval">
     <option value="1">1 minute</option>
     <option value="5">5 minutes</option>
     <option value="10">10 minutes</option>
 </select>
-
 <br>
-<br>
-
+<div style="text-align: center">
 <fieldset>
 <legend>Notifications:</legend>
     <input name="notifications" type="radio" id="notif_on" value="on" />
@@ -36,5 +30,6 @@ To find your API key, go to <a href="https://www.wanikani.com/account" target="_
 </fieldset>
 <div id="status"></div>
 <button id="save">Save</button><button id="reset">Reset</button>
+</div>
 </body>
 </html>
