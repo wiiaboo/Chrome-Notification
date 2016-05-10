@@ -6,5 +6,27 @@
     "wanikaninotify_description": {
         "message": "Notifies you when you have more to study on WaniKani!",
         "description": "The description of the extension."
+    },
+    "next_review": {
+        "message": "Next review: $DATE$",
+        "description": "Button text for next review.",
+        "placeholders": {
+            "date": {
+                "content": "$1",
+                "example": "2016/05/10 01:17"
+            }
+        }
+    },
+    "reviews_available_now": {
+        "message": "Reviews available!",
+        "description": "Button text when there are reviews to be done."
+    },
+    "wait_for_update": {
+        "message": "Waiting to know when is the next review...",
+        "description": "Button text after completing reviews and before updating the date for the next review."
+    },
+    "reviews_notification": {
+        "message": "You have new reviews on WaniKani!",
+        "description": "The text inside the notification bubble."
     }
 }

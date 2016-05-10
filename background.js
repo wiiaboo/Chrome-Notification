@@ -120,10 +120,11 @@ function set_one_time_alarm(time) {
 
 // If notifications are enabled, display a notification.
 function show_notification() {
+    var reviews_notification = chrome.i18n.getMessage('reviews_notification');
     var opt = {
       type: "basic",
       title: "WaniKani",
-      message: "You have new reviews on WaniKani!",
+      message: reviews_notification,
       iconUrl: "icon_128.png"
     };
     chrome.storage.local.get("notifications", function(data) {
@@ -145,14 +146,15 @@ function update_badge(badgeText) {
 // Update the extension's title with the next review time.
 // 'type' can be either string or date
 function update_title(type, content) {
-    var titleString;
+    var titleString = '';
     var name = chrome.i18n.getMessage('wanikaninotify_name');
     if (type === 'date') {
         titleString = 'Next Review: ';
         if (content > Date.now() + 5000) {
-            titleString += new Date(content).toString();
+            var review_date = new Date(content).toLocaleString();
+            titleString = chrome.i18n.getMessage('next_review', review_date);
         } else {
-            titleString += 'Now';
+            titleString = chrome.i18n.getMessage('reviews_available_now');
         }
     } else if (type === 'string') {
         titleString = content;
