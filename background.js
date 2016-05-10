@@ -111,7 +111,7 @@ function set_repeating_alarm() {
 }
 
 function set_one_time_alarm(time) {
-    chrome.alarms.create(REFRESH_ALARM, {when: time} );
+    chrome.alarms.create(REFRESH_ALARM, {when: time + 1000} );
     chrome.alarms.get(REFRESH_ALARM, function(alarm) {
         var d = new Date(alarm.scheduledTime);
         console.log('Refreshing at: ' + d);
