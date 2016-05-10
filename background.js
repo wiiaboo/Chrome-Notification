@@ -33,7 +33,7 @@ function fetch_reviews() {
 
                     chrome.storage.local.set({
                         "lessons_available": json.requested_information.lessons_available,
-                        "last_grab": now;
+                        "last_grab": now
                     });
                 }
             };

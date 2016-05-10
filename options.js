@@ -119,9 +119,9 @@ function restore_update_interval() {
 
 function show_status(status) {
     var statusEl = document.getElementById('status');
-    statusEl.innerHTML = status;
+    statusEl.textContent = status;
     setTimeout(function() {
-        statusEl.innerHTML = '';
+        statusEl.textContent = '';
     }, 4000);
 }
 
