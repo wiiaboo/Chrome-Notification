@@ -3,6 +3,9 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
+var API_VERSION = 'v1.4';
+var WANIKANI_URL = 'https://www.wanikani.com';
+
 // Saves options to Chrome Sync.
 function save_options() {
     var key_field = document.getElementById("api_key");
@@ -29,7 +32,7 @@ function save_options() {
             });
         }
     };
-    var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
+    var url = WANIKANI_URL + "/api/" + API_VERSION + "/user/" + encodeURIComponent(api_key) + "/study-queue";
     xhr.open("GET", url);
     xhr.send();
 

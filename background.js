@@ -4,6 +4,8 @@
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
 var REFRESH_ALARM = 'refresh';
+var API_VERSION = 'v1.4';
+var WANIKANI_URL = 'https://www.wanikani.com';
 
 // Pull new data from the API
 function fetch_reviews() {
@@ -13,7 +15,7 @@ function fetch_reviews() {
         var now = Date.now();
         if (!api_key) {
             // If the API key isn't set, we can't do anything
-            update_title('Click here to enter your API key.');
+            update_title('string', 'Click here to enter your API key.');
             update_badge('!');
         } else if (!last_grab || now - last_grab <= 60000) {
             var xhr = new XMLHttpRequest();
@@ -39,7 +41,7 @@ function fetch_reviews() {
                               "\tlast_grab: " + new Date(now).toLocaleString());
                 }
             };
-            var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
+            var url = WANIKANI_URL + "/api/" + API_VERSION + "/user/" + encodeURIComponent(api_key) + "/study-queue";
             xhr.open("GET", url);
             xhr.send();
         };
@@ -47,12 +49,8 @@ function fetch_reviews() {
 }
 
 function parse_wanikani_date(datetime) {
-    // WaniKani doesn't include milliseconds in next_review_date, so we need
-    // to pad the datetime out to 13 characters
-    if (String(datetime).length === 10) {
-        return parseInt(String(datetime + "000"), 10) + 1;
-    }
-    return datetime;
+    // API v1.4 always returns seconds from epoch instead of milliseconds
+    return datetime * 1000;
 }
 
 // Set the time of the next review.
@@ -188,16 +186,16 @@ chrome.browserAction.onClicked.addListener(function() {
         if (!api_key) {
             chrome.runtime.openOptionsPage();
         } else if (!reviews_available || reviews_available === 0) {
-            chrome.tabs.create({url: "https://www.wanikani.com"});
+            chrome.tabs.create({url: WANIKANI_URL});
         } else {
-            chrome.tabs.create({url: "https://www.wanikani.com/review/session"});
+            chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
         };
     });
 });
 
 // When a notification is clicked:
 chrome.notifications.onClicked.addListener(function () {
-    chrome.tabs.create({url: "https://www.wanikani.com"});
+    chrome.tabs.create({url: WANIKANI_URL});
     chrome.notifications.clear("review");
 });
 
