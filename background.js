@@ -61,7 +61,7 @@ function set_next_review(datetime) {
     chrome.storage.local.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
-        // 5 seconds of fuzziness
+        // 5 seconds of fuzziness, since API returns always a few seconds in the future
         if (new_datetime > Date.now() + 5000) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
@@ -147,9 +147,7 @@ function update_badge(badgeText) {
 // 'type' can be either string or date
 function update_title(type, content) {
     var titleString = '';
-    var name = chrome.i18n.getMessage('wanikaninotify_name');
     if (type === 'date') {
-        titleString = 'Next Review: ';
         if (content > Date.now() + 5000) {
             var review_date = new Date(content).toLocaleString();
             titleString = chrome.i18n.getMessage('next_review', review_date);
@@ -158,10 +156,8 @@ function update_title(type, content) {
         }
     } else if (type === 'string') {
         titleString = content;
-    } else {
-        titleString = type;
     }
-    chrome.browserAction.setTitle({'title': name + ' - ' + titleString});
+    chrome.browserAction.setTitle({'title': titleString.toString() || '' });
 }
 
 function timed_log(message) {
