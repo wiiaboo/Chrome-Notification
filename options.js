@@ -131,7 +131,6 @@ function show_status(status) {
 function clear_options() {
     chrome.storage.local.clear();
     show_status('Cleared local storage!');
-    location.reload();
 }
 
 function bind_save() {
