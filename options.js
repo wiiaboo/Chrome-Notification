@@ -122,7 +122,7 @@ function restore_update_interval() {
 
 function show_status(status) {
     var statusEl = document.getElementById('status');
-    statusEl.textContent = status;
+    statusEl.textContent = status.toString();
     setTimeout(function() {
         statusEl.textContent = '';
     }, 4000);
