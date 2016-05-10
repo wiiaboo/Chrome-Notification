@@ -35,6 +35,8 @@ function fetch_reviews() {
                         "lessons_available": json.requested_information.lessons_available,
                         "last_grab": now
                     });
+                    timed_log("\n\tReviews: " + json.requested_information.reviews_available + "\n" +
+                              "\tlast_grab: " + new Date(now).toLocaleString());
                 }
             };
             var url = "https://www.wanikani.com/api/v1.4/user/" + encodeURIComponent(api_key) + "/study-queue";
@@ -160,6 +162,12 @@ function update_title(type, content) {
     chrome.browserAction.setTitle({'title': name + ' - ' + titleString});
 }
 
+function timed_log(message) {
+    if (false) {
+        console.log(new Date().toLocaleString() + " | wanikani-notifier: " + message);
+    }
+}
+
 // Open the options page on install.
 if (typeof chrome.runtime.onInstalled !== "undefined") {
     chrome.runtime.onInstalled.addListener(function (details) {
@@ -195,6 +203,7 @@ chrome.notifications.onClicked.addListener(function () {
 // When a "refresh" alarm goes off, fetch new data.
 chrome.alarms.onAlarm.addListener(function(alarm) {
     if (alarm.name === REFRESH_ALARM) {
+        timed_log("onAlarm fetch_reviews");
         fetch_reviews();
     }
 });
@@ -211,10 +220,12 @@ chrome.storage.onChanged.addListener(function(changes) {
     for (key in changes) {
         if (changes.hasOwnProperty(key)) {
             if (key === 'api_key') {
+                timed_log("storage.onChanged fetch_reviews");
                 fetch_reviews();
             }
         }
     }
 });
 
+timed_log("background.js fetch_reviews");
 fetch_reviews();
