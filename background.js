@@ -61,8 +61,8 @@ function set_next_review(datetime) {
     chrome.storage.local.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
-        // 5 seconds of fuzziness, since API returns always a few seconds in the future
-        if (new_datetime > Date.now() + 5000) {
+        // 8 seconds of fuzziness, since API returns always a few seconds in the future
+        if (new_datetime > Date.now() + 8000) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
         } else {
