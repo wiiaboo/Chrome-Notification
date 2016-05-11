@@ -58,11 +58,17 @@ function parse_wanikani_date(datetime) {
 // Set the time of the next review.
 function set_next_review(datetime) {
     var new_datetime = parse_wanikani_date(datetime);
+    var now = Date.now();
+    // minimum time to review after learning/failing an item is 4 hours
+    var minimum_refresh = 4 * 60 * 60 * 1000;
     chrome.storage.local.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
+        if (new_datetime - now > minimum_refresh) {
+            set_one_time_alarm(now + minimum_refresh);
+        } else
         // 8 seconds of fuzziness, since API returns always a few seconds in the future
-        if (new_datetime > Date.now() + 8000) {
+        if (new_datetime > now + 8000) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
         } else {
