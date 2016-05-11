@@ -168,6 +168,7 @@ function update_title(type, content) {
 
 function timed_log(message) {
     if (false) {
+        // note to reviewers: this should never run
         console.log(new Date().toLocaleString() + " | wanikani-notifier: " + message);
     }
 }
