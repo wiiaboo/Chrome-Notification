@@ -176,7 +176,10 @@ function timed_log(message) {
 if (typeof chrome.runtime.onInstalled !== "undefined") {
     chrome.runtime.onInstalled.addListener(function (details) {
         if (details.reason === "install") {
-            chrome.runtime.openOptionsPage();
+            // chrome.runtime.openOptionsPage();
+            chrome.tabs.create({
+                "url": chrome.runtime.getURL("options.html")
+            });
         }
     });
 };
@@ -188,7 +191,10 @@ chrome.browserAction.onClicked.addListener(function() {
         var api_key = data.api_key;
         var reviews_available = data.reviews_available;
         if (!api_key) {
-            chrome.runtime.openOptionsPage();
+            // chrome.runtime.openOptionsPage();
+            chrome.tabs.create({
+                "url": chrome.runtime.getURL("options.html")
+            });
         } else if (!reviews_available || reviews_available === 0) {
             chrome.tabs.create({url: WANIKANI_URL});
         } else {
