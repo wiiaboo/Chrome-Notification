@@ -90,7 +90,7 @@ function restore_notifications() {
 
         // If notifications hasn't been set yet, default it to off
         if (!notifications) {
-            chrome.storage.sync.set({"notifications": "off"}, function () {
+            chrome.storage.local.set({"notifications": "off"}, function () {
                 document.getElementById("notif_off").checked = true;
             });
         } else {
@@ -107,7 +107,7 @@ function restore_notifications() {
 function restore_update_interval() {
     chrome.storage.local.get("update_interval", function(data) {
         if (!data.update_interval) {
-            chrome.storage.sync.set({"update_interval": 1});
+            chrome.storage.local.set({"update_interval": 1});
             data.update_interval = 1;
         }
         var update_elem = document.getElementById("update_interval");
