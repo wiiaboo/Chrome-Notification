@@ -111,12 +111,8 @@ function restore_update_interval() {
             data.update_interval = 1;
         }
         var update_elem = document.getElementById("update_interval");
-        for (var i = 0; i < update_elem.options.length; i++) {
-            if (parseInt(update_elem.options[i].value, 10) === data.update_interval) {
-                update_elem.options[i].selected = true;
-                return;
-            }
-        }
+        update_elem.value = data.update_interval;
+        return;
     });
 }
 
