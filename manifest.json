@@ -26,7 +26,8 @@
     ],
     "browser_action": {
         "default_title": "WaniKani Notifier",
-        "default_icon": "icon_128.png"
+        "default_icon": "icon_128.png",
+        "browser_style": false
     },
     "web_accessible_resources": ["icon_128.png"],
     "applications": {
