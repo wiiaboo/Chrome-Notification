@@ -66,16 +66,21 @@ function parse_wanikani_date(datetime) {
 function set_next_review(datetime) {
     var new_datetime = parse_wanikani_date(datetime);
     var now = Date.now();
-    // minimum time to review after learning/failing an item is 4 hours
-    var minimum_refresh = 4 * 60 * 60 * 1000;
+    // floor "now" to second precision
+    now = Math.floor(now / 1000) * 1000;
+    // maximum time between API checks
+    //      minimum time to review after learning/failing an item is 4 hours
+    var maximum_refresh = 4 * 60 * 60 * 1000;
+    // minimum time between API checks, only 100 requests per hour allowed
+    //      should be forgiving enough for time desyncs between server and user
+    var minimum_refresh = 30 * 1000;
     chrome.storage.local.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
-        if (new_datetime - now > minimum_refresh) {
-            set_one_time_alarm(now + minimum_refresh);
-        } else
-        // 8 seconds of fuzziness, since API returns always a few seconds in the future
-        if (new_datetime > now + 8000) {
+        timed_log("time dif: " + (new_datetime - now) + "ms");
+        if (new_datetime - now > maximum_refresh) {
+            set_one_time_alarm(now + maximum_refresh);
+        } else if (new_datetime > now + minimum_refresh) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
         } else {
@@ -124,7 +129,7 @@ function set_repeating_alarm() {
 }
 
 function set_one_time_alarm(time) {
-    chrome.alarms.create(REFRESH_ALARM, {when: time + 1000} );
+    chrome.alarms.create(REFRESH_ALARM, {when: time} );
     chrome.alarms.get(REFRESH_ALARM, function(alarm) {
         var d = new Date(alarm.scheduledTime);
         timed_log('Refreshing at: ' + d);
@@ -161,7 +166,7 @@ function update_badge(badgeText) {
 function update_title(type, content) {
     var titleString = '';
     if (type === 'date') {
-        if (content > Date.now() + 5000) {
+        if (content > Date.now() + 30000) {
             var review_date = new Date(content).toLocaleString();
             titleString = chrome.i18n.getMessage('next_review', review_date);
         } else {
