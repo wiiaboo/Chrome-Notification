@@ -9,9 +9,10 @@ var WANIKANI_URL = 'https://www.wanikani.com';
 
 // Pull new data from the API
 function fetch_reviews(force=true) {
-    chrome.storage.local.get(["api_key", "last_grab"], function(data) {
+    chrome.storage.local.get(["api_key", "last_grab", "reviews_available"], function(data) {
         var api_key = data.api_key;
         var last_grab = data.last_grab;
+        var reviews_available = data.reviews_available;
         var now = Date.now();
         if (!api_key) {
             // If the API key isn't set, we can't do anything
@@ -37,7 +38,9 @@ function fetch_reviews(force=true) {
                         "lessons_available": json.requested_information.lessons_available,
                         "last_grab": now
                     });
-                    timed_log("\n\tReviews: " + json.requested_information.reviews_available + "\n" +
+                    timed_log("API request" + "\n" +
+                              "\tNext review: " + new Date(json.requested_information.next_review_date * 1000).toLocaleString() + "\n" +
+                              "\tReviews: " + json.requested_information.reviews_available + "\n" +
                               "\tlast_grab: " + new Date(now).toLocaleString());
                 }
             };
@@ -46,6 +49,10 @@ function fetch_reviews(force=true) {
             xhr.send();
         } else {
             set_repeating_alarm();
+            if (reviews_available) {
+                update_badge(reviews_available);
+                update_title('date');
+            }
         }
     });
 }
