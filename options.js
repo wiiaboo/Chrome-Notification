@@ -63,9 +63,11 @@ function save_notifications() {
 
 // Restore all options to their form elements.
 function restore_options() {
+    document.removeEventListener('DOMContentLoaded', restore_options, false);
     restore_notifications();
     restore_update_interval();
     restore_api_key();
+    bind_save_and_reset();
 }
 
 // Restore API key text box.
@@ -129,10 +131,9 @@ function clear_options() {
     show_status('Cleared local storage!');
 }
 
-function bind_save() {
+function bind_save_and_reset() {
     document.querySelector('#save').addEventListener('click', save_options);
     document.querySelector('#reset').addEventListener('click', clear_options);
 }
 
-document.addEventListener('DOMContentLoaded', restore_options);
-document.addEventListener('DOMContentLoaded', bind_save);
+document.addEventListener('DOMContentLoaded', restore_options, false);
