@@ -16,16 +16,13 @@
 <label for="update_interval">Update interval (minutes):</label>
 <input type="number" id="update_interval" name="update_interval" min="1" max="240" required style="width: 4em">
 <br><br>
-<div style="text-align: center">
-<fieldset>
-<legend>Notifications:</legend>
-    <input name="notifications" type="radio" id="notif_on" value="on" />
-    <label for="notif_on">On</label>
-    <input name="notifications" type="radio" id="notif_off" value="off" />
-    <label for="notif_off">Off</label>
+<fieldset id="notifications" style="text-align: left; width: 5em">
+    <legend>Notifications:</legend>
+        <input type="radio" name="notifications" value="on"> On<br>
+        <input type="radio" name="notifications" value="off" checked> Off
 </fieldset>
+<br>
 <div id="status"></div>
 <button id="save">Save</button><button id="reset">Reset</button>
-</div>
 </body>
 </html>

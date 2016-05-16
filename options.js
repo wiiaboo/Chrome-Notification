@@ -52,13 +52,8 @@ function save_update_interval() {
 
 // Save notification options.
 function save_notifications() {
-    var notif_elems = document.getElementsByName("notifications");
-    for (var i = 0; i < notif_elems.length; i++) {
-        if (notif_elems[i].type === "radio" && notif_elems[i].checked) {
-            chrome.storage.local.set({"notifications":notif_elems[i].value});
-            return;
-        }
-    }
+    var notif_elem = document.querySelector("#notifications :checked");
+    chrome.storage.local.set({"notifications": notif_elem.value});
 }
 
 // Restore all options to their form elements.
@@ -89,18 +84,11 @@ function restore_api_key() {
 function restore_notifications() {
     chrome.storage.local.get("notifications", function(data) {
         var notifications = data.notifications;
-
-        // If notifications hasn't been set yet, default it to off
-        if (!notifications) {
-            chrome.storage.local.set({"notifications": "off"}, function () {
-                document.getElementById("notif_off").checked = true;
-            });
-        } else {
-            if (notifications === "on") {
-                document.getElementById("notif_on").checked = true;
-            } else if (notifications === "off") {
-                document.getElementById("notif_off").checked = true;
-            }
+        var el = document.querySelector("#notifications");
+        if (notifications === "on") {
+            el.querySelector("input[value=on]").checked = true;
+        } else if (notifications === "off" || !notifications) {
+            el.querySelector("input[value=off]").checked = true;
         }
     });
 };
