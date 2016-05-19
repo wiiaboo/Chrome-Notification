@@ -9,19 +9,21 @@
 <body style="max-width: 40em; font-family: sans-serif; margin: auto">
 
 <h3 style="text-align: center">WaniKani Notifier</h3>
-<br>
 <label for="api_key"><a href="https://www.wanikani.com/account" target="_blank" title="Go to your WaniKani account Settings for your Public API Key.">Public API key</a>:</label>
-<input id="api_key" size="32" style="font-family: monospace" pattern="[0-9a-f]{32}" maxlength="32">
+<input id="api_key" style="font-family: monospace; width: 80%" pattern="[0-9a-f]{32}" maxlength="32">
 <br><br>
 <label for="update_interval" title="Minimum interval between updates when there are reviews">Update interval:</label>
 <input type="number" name="update_interval" id="update_interval" value="1" min="1" max="240" required style="width: 3em"> minute(s)
 <br><br>
-<fieldset id="notifications" style="text-align: left; width: 5em">
+<fieldset id="notifications" style="text-align: left">
     <legend>Notifications:</legend>
         <input type="radio" name="notifications" value="on"> On<br>
         <input type="radio" name="notifications" value="off" checked> Off
 </fieldset>
 <br>
-<button id="save">Save</button> <button id="reset">Reset</button> <div id="status"></div>
+<div style="text-align: center">
+    <button id="save">Save</button> <button id="reset">Reset</button>
+    <div id="status"></div>
+</div>
 </body>
 </html>
