@@ -68,9 +68,6 @@ function set_next_review(datetime) {
     var now = Date.now();
     // floor "now" to second precision
     now = Math.floor(now / 1000) * 1000;
-    // maximum time between API checks
-    //      minimum time to review after learning/failing an item is 4 hours
-    var maximum_refresh = 4 * 60 * 60 * 1000;
     // minimum time between API checks, only 100 requests per hour allowed
     //      should be forgiving enough for time desyncs between server and user
     var minimum_refresh = 30 * 1000;
@@ -78,9 +75,7 @@ function set_next_review(datetime) {
         // Set the title of the extension
         update_title('date', new_datetime);
         timed_log("time dif: " + (new_datetime - now) + "ms");
-        if (new_datetime - now > maximum_refresh) {
-            set_one_time_alarm(now + maximum_refresh);
-        } else if (new_datetime > now + minimum_refresh) {
+        if (new_datetime > now + minimum_refresh) {
             // Refresh when it's time to study
             set_one_time_alarm(new_datetime);
         } else {
