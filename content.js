@@ -5,11 +5,16 @@
 
 
 var availableReviews = document.getElementById('available-count');
+var lessonEnd = document.getElementById('lesson-ready-end');
 
 var observer = new MutationObserver(function reviewSessionCallback() {
-    if (availableReviews) {
-        chrome.runtime.sendMessage({reviews_available: parseInt(availableReviews.innerText, 10)});
-    }
+    chrome.runtime.sendMessage({reviews_available: parseInt(availableReviews.innerText, 10)});
 });
 
-observer.observe(availableReviews, { childList: true, attributes: true, characterData: true, subtree: true });
+if (availableReviews) {
+    observer.observe(availableReviews, { childList: true, subtree: false });
+} else if (lessonEnd) {
+    lessonEnd.addEventListener('click', function() {
+        chrome.runtime.sendMessage({refresh: true});
+    });
+}
