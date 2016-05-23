@@ -21,7 +21,7 @@ function save_options() {
 
         if (json.error) {
             // If there's an error, update the badge.
-            chrome.runtime.getBackgroundPage().update_badge('!');
+            chrome.extension.getBackgroundPage().update_badge('!');
             // Also, notify the user.
             show_status('Sorry, that API key isn\'t valid. Please try again!');
         } else {
@@ -44,7 +44,7 @@ function save_options() {
         "notifications": notif_elem.value
     });
 
-    chrome.runtime.getBackgroundPage().show_notification();
+    chrome.extension.getBackgroundPage().show_notification();
 }
 
 function save_settings(options, callback) {
