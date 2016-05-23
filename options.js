@@ -21,12 +21,12 @@ function save_options() {
 
         if (json.error) {
             // If there's an error, update the badge.
-            chrome.extension.getBackgroundPage().update_badge('!');
+            chrome.runtime.getBackgroundPage().update_badge('!');
             // Also, notify the user.
             show_status('Sorry, that API key isn\'t valid. Please try again!');
         } else {
             // Store the api key in Chrome Sync.
-            chrome.storage.local.set({"api_key": api_key}, function() {
+            save_settings({"api_key": api_key}, function() {
                 // Update status to let user know options were saved.
                 show_status('Your options have been saved. Thanks, ' + String(json.user_information.username) + '!');
             });
@@ -36,29 +36,38 @@ function save_options() {
     xhr.open("GET", url);
     xhr.send();
 
-    // Save notification options.
-    save_notifications();
-    // Save update interval.
-    save_update_interval();
-
-    chrome.extension.getBackgroundPage().show_notification();
-}
-
-// Save update interval.
-function save_update_interval() {
-  var update_elem = document.getElementById("update_interval");
-  chrome.storage.local.set({"update_interval":parseInt(update_elem.value, 10)});
-}
-
-// Save notification options.
-function save_notifications() {
     var notif_elem = document.querySelector("#notifications :checked");
-    chrome.storage.local.set({"notifications": notif_elem.value});
+    var update_elem = document.getElementById("update_interval");
+
+    save_settings({
+        "update_interval": parseInt(update_elem.value, 10),
+        "notifications": notif_elem.value
+    });
+
+    chrome.runtime.getBackgroundPage().show_notification();
+}
+
+function save_settings(options, callback) {
+    chrome.storage.local.set(options, function() {
+        if (typeof callback === "function") {
+            callback();
+        }
+        if (typeof chrome.storage.sync !== "undefined") {
+            chrome.storage.sync.set(options);
+        }
+    });
 }
 
 // Restore all options to their form elements.
 function restore_options() {
     document.removeEventListener('DOMContentLoaded', restore_options, false);
+    if (typeof chrome.storage.sync !== "undefined") {
+        chrome.storage.sync.get(["api_key", "update_interval", "notifications"], function(options) {
+            if (options) {
+                chrome.storage.local.set(options);
+            }
+        });
+    }
     restore_notifications();
     restore_update_interval();
     restore_api_key();
