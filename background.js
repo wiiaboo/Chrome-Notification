@@ -190,7 +190,7 @@ if (typeof chrome.runtime.onInstalled !== "undefined") {
             });
         }
     });
-};
+}
 
 // When the extension's icon is clicked:
 chrome.browserAction.onClicked.addListener(function() {
