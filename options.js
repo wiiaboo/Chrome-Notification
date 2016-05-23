@@ -69,14 +69,9 @@ function restore_options() {
 function restore_api_key() {
     chrome.storage.local.get("api_key", function(data) {
         var api_key = data.api_key;
-        // If no API key is stored, leave the text box blank.
-        // We don't set a default value for the API key because it must be set
-        // for the extension to work.
-        if (!api_key) {
-            return;
-        }
         var key_field = document.getElementById("api_key");
-        key_field.value = api_key;
+        if (api_key)
+            key_field.value = api_key;
     });
 }
 
@@ -84,25 +79,19 @@ function restore_api_key() {
 function restore_notifications() {
     chrome.storage.local.get("notifications", function(data) {
         var notifications = data.notifications;
-        var el = document.querySelector("#notifications");
-        if (notifications === "on") {
-            el.querySelector("input[value=on]").checked = true;
-        } else if (notifications === "off" || !notifications) {
-            el.querySelector("input[value=off]").checked = true;
-        }
+        var notif_elem = document.getElementById("notifications");
+        if (notifications)
+            notif_elem.querySelector("input[value=" + notifications + "]").checked = true;
     });
 };
 
 // Restore update interval dropdown.
 function restore_update_interval() {
     chrome.storage.local.get("update_interval", function(data) {
-        if (!data.update_interval) {
-            chrome.storage.local.set({"update_interval": 1});
-            data.update_interval = 1;
-        }
-        var update_elem = document.getElementById("update_interval");
-        update_elem.value = data.update_interval;
-        return;
+        var update_interval = data.update_interval;
+        var updt_elem = document.getElementById("update_interval");
+        if (update_interval)
+            updt_elem.value = update_interval;
     });
 }
 
