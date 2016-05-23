@@ -135,7 +135,7 @@ function set_one_time_alarm(time) {
 function show_notification(custom_message) {
     var title = chrome.i18n.getMessage('wanikaninotify_name');
     var message = custom_message || chrome.i18n.getMessage('reviews_notification');
-    var type = "message" ? custom_message : "review";
+    var type = (custom_message) ? "message" : "review";
     var opt = {
       type: "basic",
       title: title,
