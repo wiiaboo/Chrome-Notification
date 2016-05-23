@@ -135,6 +135,7 @@ function set_one_time_alarm(time) {
 function show_notification(custom_message) {
     var title = chrome.i18n.getMessage('wanikaninotify_name');
     var message = custom_message || chrome.i18n.getMessage('reviews_notification');
+    var type = "message" ? custom_message : "review";
     var opt = {
       type: "basic",
       title: title,
@@ -143,7 +144,7 @@ function show_notification(custom_message) {
     };
     chrome.storage.local.get("notifications", function(data) {
         if (data.notifications === "on") {
-            chrome.notifications.create("review", opt);
+            chrome.notifications.create(type, opt);
         }
     });
 }
@@ -214,12 +215,16 @@ chrome.browserAction.onClicked.addListener(function() {
 
 if (typeof chrome.notifications.onClicked !== "undefined") {
     // When a notification is clicked:
-    chrome.notifications.onClicked.addListener(function () {
-        chrome.tabs.create({url: WANIKANI_URL});
-        chrome.notifications.clear("review");
+    chrome.notifications.onClicked.addListener(function (notificationId) {
+        if (notificationId === "review") {
+            chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
+            chrome.notifications.clear("review");
+        } else {
+            chrome.tabs.create({url: WANIKANI_URL});
+            chrome.notifications.clear("review");
+        }
     });
 }
-
 
 // When a "refresh" alarm goes off, fetch new data.
 chrome.alarms.onAlarm.addListener(function(alarm) {
