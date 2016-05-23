@@ -132,16 +132,17 @@ function set_one_time_alarm(time) {
 }
 
 // If notifications are enabled, display a notification.
-function show_notification() {
-    var reviews_notification = chrome.i18n.getMessage('reviews_notification');
+function show_notification(custom_message) {
+    var title = chrome.i18n.getMessage('wanikaninotify_name');
+    var message = custom_message || chrome.i18n.getMessage('reviews_notification');
     var opt = {
       type: "basic",
-      title: "WaniKani",
-      message: reviews_notification,
+      title: title,
+      message: message,
       iconUrl: "icon_128.png"
     };
     chrome.storage.local.get("notifications", function(data) {
-        if (data.notifications && data.notifications === "on") {
+        if (data.notifications === "on") {
             chrome.notifications.create("review", opt);
         }
     });

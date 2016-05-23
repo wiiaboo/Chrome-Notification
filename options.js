@@ -44,7 +44,7 @@ function save_options() {
         "notifications": notif_elem.value
     });
 
-    chrome.extension.getBackgroundPage().show_notification();
+    chrome.extension.getBackgroundPage().show_notification("Test notification");
 }
 
 function save_settings(options, callback) {
