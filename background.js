@@ -211,11 +211,13 @@ chrome.browserAction.onClicked.addListener(function() {
     });
 });
 
-// When a notification is clicked:
-chrome.notifications.onClicked.addListener(function () {
-    chrome.tabs.create({url: WANIKANI_URL});
-    chrome.notifications.clear("review");
-});
+if (typeof chrome.notifications.onClicked !== "undefined") {
+    // When a notification is clicked:
+    chrome.notifications.onClicked.addListener(function () {
+        chrome.tabs.create({url: WANIKANI_URL});
+        chrome.notifications.clear("review");
+    });
+}
 
 
 // When a "refresh" alarm goes off, fetch new data.
