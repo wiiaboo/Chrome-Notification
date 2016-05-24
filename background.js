@@ -140,7 +140,7 @@ function show_notification(custom_message) {
       type: "basic",
       title: title,
       message: message,
-      iconUrl: "icon_128.png"
+      iconUrl: "icons/icon_128.png"
     };
     chrome.storage.local.get("notifications", function(data) {
         if (data.notifications === "on") {
