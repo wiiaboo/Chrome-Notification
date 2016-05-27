@@ -28,5 +28,13 @@
     "reviews_notification": {
         "message": "You have new reviews on WaniKani!",
         "description": "The text inside the notification bubble."
+    },
+    "reviews_available": {
+        "message": "review(s)",
+        "description": "Button in popup label when reviews are available."
+    },
+    "lessons_available": {
+        "message": "lessons(s)",
+        "description": "Button in popup label when lessons are available."
     }
 }
