@@ -15,6 +15,9 @@
 <label for="update_interval" title="Minimum interval between updates when there are reviews">Update interval:</label>
 <input type="number" name="update_interval" id="update_interval" value="1" min="1" max="240" required style="width: 3em"> minute(s)
 <br><br>
+<label for="notif_life" title="Lifetime of notification">Notification closes after</label>
+<input type="number" name="notif_life" id="notif_life" value="5" min="5" max="30" required style="width: 3em"> second(s)
+<br><br>
 <fieldset id="notifications" style="text-align: left">
     <legend>Notifications:</legend>
         <input type="radio" name="notifications" value="on"> On<br>

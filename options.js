@@ -36,11 +36,13 @@ function save_options() {
     xhr.open("GET", url);
     xhr.send();
 
-    var notif_elem = document.querySelector("#notifications :checked");
     var update_elem = document.getElementById("update_interval");
+    var notif_life_elem = document.getElementById("notif_life");
+    var notif_elem = document.querySelector("#notifications :checked");
 
     save_settings({
         "update_interval": parseInt(update_elem.value, 10),
+        "notif_life": parseInt(notif_life_elem.value, 10),
         "notifications": notif_elem.value
     });
 
@@ -69,7 +71,8 @@ function restore_options() {
         });
     }
     restore_notifications();
-    restore_update_interval();
+    restore_number("notif_life");
+    restore_number("update_interval");
     restore_api_key();
     bind_save_and_reset();
 }
@@ -95,12 +98,12 @@ function restore_notifications() {
 };
 
 // Restore update interval dropdown.
-function restore_update_interval() {
-    chrome.storage.local.get("update_interval", function(data) {
-        var update_interval = data.update_interval;
-        var updt_elem = document.getElementById("update_interval");
-        if (update_interval)
-            updt_elem.value = update_interval;
+function restore_number(name) {
+    chrome.storage.local.get(name, function(data) {
+        var value = data.hasOwnProperty(name) && data[name];
+        var elem = document.getElementById(name);
+        if (value && elem)
+            elem.value = value;
     });
 }
 

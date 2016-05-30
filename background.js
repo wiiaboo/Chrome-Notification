@@ -142,9 +142,14 @@ function show_notification(custom_message) {
       message: message,
       iconUrl: "icons/icon_128.png"
     };
-    chrome.storage.local.get("notifications", function(data) {
+    chrome.storage.local.get(["notifications", "notif_life"], function(data) {
+        var notif_life = data.notif_life;
         if (data.notifications === "on") {
-            chrome.notifications.create(type, opt);
+            chrome.notifications.create("notification", opt, function(id) {
+                if (typeof notif_life === "number") {
+                    chrome.alarms.create("notification", { when: Date.now() + notif_life*1000 });
+                }
+            })
         }
     });
 }
@@ -231,6 +236,8 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
     if (alarm.name === REFRESH_ALARM) {
         timed_log("onAlarm fetch_reviews");
         fetch_reviews();
+    } else if (alarm.name === "notification") {
+        chrome.notifications.clear("notification");
     }
 });
 
