@@ -7,6 +7,13 @@ var REFRESH_ALARM = 'refresh';
 var API_VERSION = 'v1.4';
 var WANIKANI_URL = 'https://www.wanikani.com';
 
+function timed_log(message) {
+    if (false) {
+        // note to reviewers: this should never run
+        console.info("WN: " + message);
+    }
+}
+
 // Pull new data from the API
 function fetch_reviews(force=true) {
     chrome.storage.local.get(["api_key", "last_grab", "reviews_available"], function(data) {
@@ -179,13 +186,6 @@ function update_title(type, content) {
         titleString = content;
     }
     chrome.browserAction.setTitle({'title': titleString.toString() || '' });
-}
-
-function timed_log(message) {
-    if (false) {
-        // note to reviewers: this should never run
-        console.info("WN: " + message);
-    }
 }
 
 // Open the options page on install.
