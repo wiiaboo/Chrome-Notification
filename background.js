@@ -147,6 +147,7 @@ function show_notification(custom_message) {
         if (data.notifications === "on") {
             chrome.notifications.create("notification", opt, function(id) {
                 if (typeof notif_life === "number") {
+                    timed_log("create notification alarm");
                     chrome.alarms.create("notification", { when: Date.now() + notif_life*1000 });
                 }
             })
@@ -221,6 +222,7 @@ chrome.browserAction.onClicked.addListener(function() {
 if (typeof chrome.notifications.onClicked !== "undefined") {
     // When a notification is clicked:
     chrome.notifications.onClicked.addListener(function (notificationId) {
+        timed_log("notification clicked");
         if (notificationId === "review") {
             chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
             chrome.notifications.clear("review");
@@ -233,10 +235,12 @@ if (typeof chrome.notifications.onClicked !== "undefined") {
 
 // When a "refresh" alarm goes off, fetch new data.
 chrome.alarms.onAlarm.addListener(function(alarm) {
+    timed_log("onalarm");
     if (alarm.name === REFRESH_ALARM) {
         timed_log("onAlarm fetch_reviews");
         fetch_reviews();
     } else if (alarm.name === "notification") {
+        timed_log("onAlarm clear notification");
         chrome.notifications.clear("notification");
     }
 });
