@@ -4,29 +4,42 @@
     <meta charset="UTF-8">
     <title>WaniKani Notifier Options</title>
     <script src="options.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/options.css">
 </head>
+<body>
+<h2>WaniKani Notifier</h2>
 
-<body style="max-width: 40em; font-family: sans-serif; margin: auto">
+<div class="control-group">
+    <label for="api_key"><a href="https://www.wanikani.com/account#user_password" target="_blank" title="Go to your WaniKani account Settings for your Public API Key.">Public API key</a></label> 
+    <div class="controls">
+        <input type="text" id="api_key" pattern="[0-9a-f]{32}" maxlength="32" placeholder="32 hexadecimal characters">
+    </div>
+</div>
 
-<h3 style="text-align: center">WaniKani Notifier</h3>
-<label for="api_key"><a href="https://www.wanikani.com/account" target="_blank" title="Go to your WaniKani account Settings for your Public API Key.">Public API key</a>:</label>
-<input id="api_key" style="font-family: monospace; width: 80%" pattern="[0-9a-f]{32}" maxlength="32" placeholder="32 hexadecimal characters">
-<br><br>
-<label for="update_interval" title="Minimum interval between updates when there are reviews">Update interval:</label>
-<input type="number" name="update_interval" id="update_interval" value="1" min="1" max="240" required style="width: 3em"> minute(s)
-<br><br>
-<label for="notif_life" title="Lifetime of notification">Notification closes after</label>
-<input type="number" name="notif_life" id="notif_life" value="5" min="5" max="30" required style="width: 3em"> second(s)
-<br><br>
-<fieldset id="notifications" style="text-align: left">
-    <legend>Notifications:</legend>
-        <input type="radio" name="notifications" value="on"> On<br>
-        <input type="radio" name="notifications" value="off" checked> Off
-</fieldset>
-<br>
-<div style="text-align: center">
+<div class="control-group">
+    <label for="update_interval" title="Minimum interval between updates when there are reviews">Update interval</label>
+    <div class="controls">
+        <input type="number" name="update_interval" id="update_interval" value="1" min="1" max="240" step="1" title="Between 1 and 240 minutes (4 hours)" required> minute(s)
+    </div>
+</div>
+
+<div class="control-group">
+    <label title="Enable or disable notifications">Notifications</label>
+    <div class="controls" id="notifications">
+        <label class="radio"><input type="radio" name="notifications" value="on"> On</label><br>
+        <label class="radio"><input type="radio" name="notifications" value="off" checked> Off</label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label for="notif_life" title="Lifetime of notification if enabled">Notification closes after</label>
+    <div class="controls">
+    <input type="number" name="notif_life" id="notif_life" value="5" min="1" max="30" title="Between 1 and 240 minutes (4 hours)" required> second(s)</div>
+</div>
+
+<div id="buttons">
+    <div id="status">&nbsp;</div>
     <button id="save">Save</button> <button id="reset">Reset</button>
-    <div id="status"></div>
 </div>
 </body>
 </html>

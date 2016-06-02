@@ -1,0 +1,90 @@
+html {
+    background-color: #ddd;
+}
+
+body {
+    color: #666;
+    max-width: 40em;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    margin: 2em auto;
+    padding: 1em;
+    border: 0;
+    border-radius: 10px;
+    background-color: #f6f6f6;
+}
+
+h2 {
+    text-align: center;
+    font-weight: 300;
+    letter-spacing: -1px;
+    margin-bottom: 2em;
+}
+
+.control-group {
+    margin-bottom: 1.5em;
+    display: block;
+}
+.control-group::before, .control-group::after {
+    display: table;
+    content: "";
+    line-height: 0;
+}
+
+.controls {
+    margin-left: 35%;
+    display: block;
+}
+
+input[type="number"], input[type="text"] {
+    border: 0;
+    border-bottom: 1px solid #d5d5d5;
+    background-color: transparent;
+    display: inline-block;
+}
+
+input[type="number"] {
+    background-color: #fff;
+    width: 3em;
+    height: 1.5em;
+    text-align: center;
+}
+
+input#api_key {
+    width: 32ch;
+    padding: 4px 6px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: monospace;
+}
+
+.control-group > label {
+    float: left;
+    width: 30%;
+    text-align: right;
+}
+
+label.radio {
+    display: inline-block;
+    float: none;
+    width: auto;
+}
+
+#buttons {
+    text-align: center;
+}
+
+#buttons button {
+    background-image: linear-gradient(to bottom, #fff, #e6e6e6);
+    border: 1px solid #ddd;
+    border-color: #ccc #ccc #aaa;
+    border-radius: 5px;
+    padding: 0.5em;
+    color: #666;
+}
+#buttons button:hover {
+    background: #ddd;
+    cursor: pointer;
+    color: #000;
+}
