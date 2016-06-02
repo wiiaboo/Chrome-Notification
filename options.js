@@ -111,7 +111,7 @@ function show_status(status) {
     var statusEl = document.getElementById('status');
     statusEl.textContent = status.toString();
     setTimeout(function() {
-        statusEl.textContent = '&nbsp;';
+        statusEl.textContent = '';
     }, 4000);
 }
 
