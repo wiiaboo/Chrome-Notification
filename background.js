@@ -152,7 +152,7 @@ function show_notification(custom_message) {
     chrome.storage.local.get(["notifications", "notif_life"], function(data) {
         var notif_life = data.notif_life;
         if (data.notifications === "on") {
-            chrome.notifications.create("notification", opt, function(id) {
+            chrome.notifications.create(type, opt, function(id) {
                 if (typeof notif_life === "number") {
                     timed_log("create notification alarm");
                     chrome.alarms.create("notification", { when: Date.now() + notif_life*1000 });
@@ -225,11 +225,11 @@ if (typeof chrome.notifications.onClicked !== "undefined") {
         timed_log("notification clicked");
         if (notificationId === "review") {
             chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
-            chrome.notifications.clear("review");
         } else {
             chrome.tabs.create({url: WANIKANI_URL});
-            chrome.notifications.clear("review");
         }
+        chrome.notifications.clear(notificationId);
+        chrome.alarms.clear("notification");
     });
 }
 
@@ -241,7 +241,11 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
         fetch_reviews();
     } else if (alarm.name === "notification") {
         timed_log("onAlarm clear notification");
-        chrome.notifications.clear("notification");
+        chrome.notifications.getAll(function(notifications) {
+            for (let type of Object.keys(notifications)) {
+                chrome.notifications.clear(type);
+            }
+        });
     }
 });
 
