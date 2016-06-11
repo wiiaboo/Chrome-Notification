@@ -225,6 +225,8 @@ if (typeof chrome.notifications.onClicked !== "undefined") {
         timed_log("notification clicked");
         if (notificationId === "review") {
             chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
+        } else if (notificationId === "lesson") {
+            chrome.tabs.create({url: WANIKANI_URL + "/lesson/session"});
         } else {
             chrome.tabs.create({url: WANIKANI_URL});
         }
