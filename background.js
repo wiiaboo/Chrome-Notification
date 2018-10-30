@@ -6,6 +6,8 @@
 var REFRESH_ALARM = 'refresh';
 var API_VERSION = 'v1.4';
 var WANIKANI_URL = 'https://www.wanikani.com';
+var WANIKANI_API_V2 = 'https://api.wanikani.com/v2';
+var storage = browser.storage.sync || browser.storage.local;
 
 function timed_log(message) {
     if (false) {
@@ -14,9 +16,35 @@ function timed_log(message) {
     }
 }
 
+// make a new request or handle no data change
+function request_data(resource) {
+    if (!resource) return;
+    storage.get(["api_key", "last_requests", "reviews_available"], function(data) {
+        if (!data.api_key) {
+            // If the API key isn't set, we can't do anything
+            update_title('string', 'Click here to enter your API key.');
+            update_badge('!');
+            return;
+        }
+        let xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                storage.set({})
+            }
+        });
+
+        xhr.open("GET", WANIKANI_API_V2 + "/" + resource);
+        xhr.setRequestHeader("Authorization", ["Bearer", data.api_key].join(" "));
+
+        xhr.send(data);
+    });
+}
+
 // Pull new data from the API
 function fetch_reviews(force=true) {
-    chrome.storage.local.get(["api_key", "last_grab", "reviews_available"], function(data) {
+    storage.get(["api_key", "last_grab", "reviews_available"], function(data) {
         var api_key = data.api_key;
         var last_grab = data.last_grab;
         var reviews_available = data.reviews_available;
@@ -41,7 +69,7 @@ function fetch_reviews(force=true) {
                     // Set the next review date
                     set_next_review(json.requested_information.next_review_date);
 
-                    chrome.storage.local.set({
+                    storage.set({
                         "lessons_available": json.requested_information.lessons_available,
                         "last_grab": now
                     });
@@ -78,7 +106,7 @@ function set_next_review(datetime) {
     // minimum time between API checks, only 100 requests per hour allowed
     //      should be forgiving enough for time desyncs between server and user
     var minimum_refresh = 30 * 1000;
-    chrome.storage.local.set({'next_review': new_datetime}, function() {
+    storage.set({'next_review': new_datetime}, function() {
         // Set the title of the extension
         update_title('date', new_datetime);
         timed_log("time dif: " + (new_datetime - now) + "ms");
@@ -93,7 +121,7 @@ function set_next_review(datetime) {
 
 function set_vacation_date(datetime) {
     var new_datetime = parse_wanikani_date(datetime);
-    chrome.storage.local.set({'vacation_date': new_datetime}, function() {
+    storage.set({'vacation_date': new_datetime}, function() {
         // If vacation date is active, refresh on interval to see if it goes away
         if (new_datetime) {
             update_badge(0);
@@ -106,9 +134,9 @@ function set_vacation_date(datetime) {
 
 // Set the number of reviews available and notify the user.
 function set_review_count(newReviewCount) {
-    chrome.storage.local.get('reviews_available', function(data) {
+    storage.get('reviews_available', function(data) {
         var oldReviewCount = data.reviews_available;
-        chrome.storage.local.set({"reviews_available": newReviewCount}, function() {
+        storage.set({"reviews_available": newReviewCount}, function() {
             update_badge(newReviewCount);
             if (newReviewCount > (oldReviewCount || 0)) {
                 show_notification();
@@ -118,9 +146,9 @@ function set_review_count(newReviewCount) {
 }
 
 function set_repeating_alarm() {
-    chrome.storage.local.get('update_interval', function(data) {
+    storage.get('update_interval', function(data) {
         if (!data.update_interval) {
-            chrome.storage.local.set({'update_interval': 1});
+            storage.set({'update_interval': 1});
             data.update_interval = 1;
         }
         chrome.alarms.create(REFRESH_ALARM, {
@@ -149,7 +177,7 @@ function show_notification(custom_message) {
       message: message,
       iconUrl: "icons/icon_128.png"
     };
-    chrome.storage.local.get(["notifications", "notif_life"], function(data) {
+    storage.get(["notifications", "notif_life"], function(data) {
         var notif_life = data.notif_life;
         if (data.notifications === "on") {
             chrome.notifications.create(type, opt, function(id) {
@@ -192,7 +220,7 @@ if (typeof chrome.runtime.onInstalled !== "undefined") {
     chrome.runtime.onInstalled.addListener(function (details) {
         if (details.reason === "install") {
             // chrome.runtime.openOptionsPage();
-            chrome.tabs.create({
+            browser.tabs.create({
                 "url": chrome.runtime.getURL("options.html")
             });
         }
@@ -202,18 +230,18 @@ if (typeof chrome.runtime.onInstalled !== "undefined") {
 // When the extension's icon is clicked:
 chrome.browserAction.onClicked.addListener(function() {
     // If no API key is saved, redirect to the options page. Else open a tab to WaniKani.
-    chrome.storage.local.get(["api_key", "reviews_available"], function(data) {
+    storage.get(["api_key", "reviews_available"], function(data) {
         var api_key = data.api_key;
         var reviews_available = data.reviews_available;
         if (!api_key) {
             // chrome.runtime.openOptionsPage();
-            chrome.tabs.create({
+            browser.tabs.create({
                 "url": chrome.runtime.getURL("options.html")
             });
         } else if (!reviews_available || reviews_available === 0) {
-            chrome.tabs.create({url: WANIKANI_URL});
-        } else {
-            chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
+            browser.tabs.create({url: WANIKANI_URL});
+        } else if (!browser.tabs.query({'title': 'WaniKani / Reviews'})) {
+            browser.tabs.create({url: WANIKANI_URL + "/review/session"});
         };
     });
 });
@@ -222,11 +250,11 @@ if (typeof chrome.notifications.onClicked !== "undefined") {
     // When a notification is clicked:
     chrome.notifications.onClicked.addListener(function (notificationId) {
         if (notificationId === "review") {
-            chrome.tabs.create({url: WANIKANI_URL + "/review/session"});
+            browser.tabs.create({url: WANIKANI_URL + "/review/session"});
         } else if (notificationId === "lesson") {
-            chrome.tabs.create({url: WANIKANI_URL + "/lesson/session"});
+            browser.tabs.create({url: WANIKANI_URL + "/lesson/session"});
         } else {
-            chrome.tabs.create({url: WANIKANI_URL});
+            browser.tabs.create({url: WANIKANI_URL});
         }
         chrome.notifications.clear(notificationId);
         chrome.alarms.clear("notification");
@@ -262,8 +290,7 @@ chrome.runtime.onMessage.addListener(function(request) {
 });
 
 chrome.storage.onChanged.addListener(function(changes) {
-    var key;
-    for (key in changes) {
+    for (let key in changes) {
         if (changes.hasOwnProperty(key)) {
             if (key === 'api_key') {
                 fetch_reviews();

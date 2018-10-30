@@ -10,9 +10,9 @@
 <h2>WaniKani Notifier</h2>
 
 <div class="control-group">
-    <label for="api_key"><a href="https://www.wanikani.com/account#user_password" target="_blank" title="Go to your WaniKani account Settings for your Public API Key">Public API key</a></label>
+    <label for="api_key"><a href="https://www.wanikani.com/settings/account#public-api-key" target="_blank" title="Go to your WaniKani account Settings for your Public v2 API Key">Public v2 API key</a></label>
     <div class="controls">
-        <input type="text" id="api_key" pattern="[0-9a-f]{32}" maxlength="32" placeholder="32 hexadecimal characters">
+        <input type="text" id="api_key" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" maxlength="36" placeholder="32 hexadecimal characters in UUID format">
     </div>
 </div>
 

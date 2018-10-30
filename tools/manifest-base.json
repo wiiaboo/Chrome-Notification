@@ -29,7 +29,8 @@
         "alarms",
         "notifications",
         "storage",
-        "https://www.wanikani.com/api/*"
+        "https://www.wanikani.com/api/*",
+        "https://api.wanikani.com/v2/*"
     ],
     "browser_action": {
         "default_title": "WaniKani Notifier",
