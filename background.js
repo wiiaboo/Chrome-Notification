@@ -3,190 +3,143 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-var REFRESH_ALARM = 'refresh';
-var API_VERSION = 'v1.4';
-var WANIKANI_URL = 'https://www.wanikani.com';
-var WANIKANI_API_V2 = 'https://api.wanikani.com/v2';
-var storage = browser.storage.sync || browser.storage.local;
+const REFRESH_ALARM = 'refresh';
 
-function timed_log(message) {
-    if (false) {
-        // note to reviewers: this should never run
-        console.info("WN: " + message);
-    }
-}
+const WANIKANI_URL = 'https://www.wanikani.com';
+const WANIKANI_API_BASE = 'https://api.wanikani.com/v2';
+const WANIKANI_API_VERSION = '20170710';
+const ALLOWED_RESOURCES = {
+    USER: 'user', // <2KB storage needed
+    SUMMARY: 'summary', // ~10KB storage needed
+};
+const MINIMUM_RESOURCE_COOLDOWN = 5 * 1000;
 
+const storage = browser.storage.sync || browser.storage.local;
+
+// requestData (resource)
+// use cached data if available: "If-Modified-Since: new Date(request.data_updated_at).toGMTString()"
+// if 304, use cached data
+// if 200, save request in cache and return to caller
 // make a new request or handle no data change
-function request_data(resource) {
-    if (!resource) return;
-    storage.get(["api_key", "last_requests", "reviews_available"], function(data) {
-        if (!data.api_key) {
-            // If the API key isn't set, we can't do anything
-            update_title('string', 'Click here to enter your API key.');
-            update_badge('!');
-            return;
-        }
-        let xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
+function requestData(resource, force = false) {
+    if (Object.values(ALLOWED_RESOURCES).indexOf(resource) < 0)
+        throw new Error('Refused request to invalid resource.');
 
-        xhr.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-                storage.set({})
+    return storage.get()
+        .then(data => {
+            // If the API key isn't set, we can't do anything
+            if (!data.api_key) {
+                update_title('string', 'Click here to enter your API key.');
+                update_badge('!');
+                return;
             }
+            if (!data.cache)
+                data.cache = {};
+
+            if (!data.cache[resource])
+                data.cache[resource] = {};
+
+            let headers = new Headers({
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${data.api_key}`,
+                'Wanikani-Revision': WANIKANI_API_VERSION,
+            });
+            if (!force && data.cache[resource].lastRetrieved &&
+                Date.now() - data.cache[resource].lastRetrieved < MINIMUM_RESOURCE_COOLDOWN) {
+                return;
+            } else if (!force && data.cache[resource].data_updated_at) {
+                headers.set('If-Modified-Since',
+                    new Date(data.cache[resource].data_updated_at).toUTCString());
+            }
+
+            let request = new Request(`${WANIKANI_API_BASE}/${resource}`, {
+                method: 'GET',
+                headers
+            });
+
+            return fetch(request)
+                .then(response => {
+                    let lastRetrieved = Date.now();
+                    data.cache[resource].lastRetrieved = lastRetrieved;
+                    if (response.status === 429) {
+                        return;
+                    }
+                    if (response.status === 304) {
+                        return;
+                    }
+                    return response.json()
+                        .then(json => {
+                            json.lastRetrieved = lastRetrieved;
+                            data.cache[resource] = json;
+                        });
+                })
+                .then(() => storage.set(data));
+        })
+        .then(() => storage.get());
+}
+
+function updateUser() {
+    return requestData(ALLOWED_RESOURCES.USER);
+}
+function updateSummary(force) {
+    return requestData(ALLOWED_RESOURCES.SUMMARY, force);
+}
+function getUserName() {
+    return updateUser()
+        .then(data => data.cache.user.data.username);
+}
+function getSummary() {
+    return updateSummary()
+        .then(data => data.cache.summary.data);
+}
+
+function fetchReviews(force=false) {
+    updateSummary(force)
+        .then(data => {
+            let summary = data.cache.summary.data;
+            setNextReview(new Date(summary.next_reviews_at));
+            if (summary.reviews.length > 0) {
+                setReviewCount(summary.reviews[0].subject_ids.length)
+            } else {
+                setReviewCount(0);
+            }
+            data.lessons_available = 0;
+            if (summary.lessons.length > 0) {
+                data.lessons_available = summary.lessons[0].subject_ids.length;
+            }
+            storage.set(data);
         });
-
-        xhr.open("GET", WANIKANI_API_V2 + "/" + resource);
-        xhr.setRequestHeader("Authorization", ["Bearer", data.api_key].join(" "));
-
-        xhr.send(data);
-    });
 }
 
-// Pull new data from the API
-function fetch_reviews(force=true) {
-    storage.get(["api_key", "last_grab", "reviews_available"], function(data) {
-        var api_key = data.api_key;
-        var last_grab = data.last_grab;
-        var reviews_available = data.reviews_available;
-        var now = Date.now();
-        if (!api_key) {
-            // If the API key isn't set, we can't do anything
-            update_title('string', 'Click here to enter your API key.');
-            update_badge('!');
-        } else if (force || !last_grab || now - last_grab >= 60000) {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function () {
-                // Parse the JSON
-                var json = xhr.responseText;
-                json = JSON.parse(json);
-
-                if (json.requested_information.vacation_date) {
-                    set_vacation_date(json.requested_information.vacation_date);
-                } else {
-                    // Set the number of items that need reviewing
-                    set_review_count(json.requested_information.reviews_available);
-
-                    // Set the next review date
-                    set_next_review(json.requested_information.next_review_date);
-
-                    storage.set({
-                        "lessons_available": json.requested_information.lessons_available,
-                        "last_grab": now
-                    });
-                    timed_log("API request" + "\n" +
-                              "\tNext review: " + new Date(json.requested_information.next_review_date * 1000).toLocaleString() + "\n" +
-                              "\tReviews: " + json.requested_information.reviews_available + "\n" +
-                              "\tlast_grab: " + new Date(now).toLocaleString());
-                }
-            };
-            var url = WANIKANI_URL + "/api/" + API_VERSION + "/user/" + encodeURIComponent(api_key) + "/study-queue";
-            xhr.open("GET", url);
-            xhr.send();
-        } else {
-            set_repeating_alarm();
-            if (reviews_available) {
-                update_badge(reviews_available);
-                update_title('date');
-            }
-        }
-    });
-}
-
-function parse_wanikani_date(datetime) {
-    // API v1.4 always returns seconds from epoch instead of milliseconds
-    return datetime * 1000;
-}
-
-// Set the time of the next review.
-function set_next_review(datetime) {
-    var new_datetime = parse_wanikani_date(datetime);
-    var now = Date.now();
-    // floor "now" to second precision
-    now = Math.floor(now / 1000) * 1000;
-    // minimum time between API checks, only 100 requests per hour allowed
-    //      should be forgiving enough for time desyncs between server and user
-    var minimum_refresh = 30 * 1000;
-    storage.set({'next_review': new_datetime}, function() {
-        // Set the title of the extension
-        update_title('date', new_datetime);
-        timed_log("time dif: " + (new_datetime - now) + "ms");
-        if (new_datetime > now + minimum_refresh) {
-            // Refresh when it's time to study
-            set_one_time_alarm(new_datetime);
-        } else {
-            set_repeating_alarm();
-        }
-    });
-}
-
-function set_vacation_date(datetime) {
-    var new_datetime = parse_wanikani_date(datetime);
-    storage.set({'vacation_date': new_datetime}, function() {
-        // If vacation date is active, refresh on interval to see if it goes away
-        if (new_datetime) {
-            update_badge(0);
-            update_title('string', 'Vacation mode is set');
-            // Refresh at the specified interval.
-            set_repeating_alarm();
-        }
-    });
+function setNextReview(nextReviewDate) {
+    update_title('date', nextReviewDate);
+    if (nextReviewDate > new Date())
+        setAlarm(nextReviewDate)
+    else
+        setRepeatingAlarm();
 }
 
 // Set the number of reviews available and notify the user.
-function set_review_count(newReviewCount) {
-    storage.get('reviews_available', function(data) {
-        var oldReviewCount = data.reviews_available;
-        storage.set({"reviews_available": newReviewCount}, function() {
-            update_badge(newReviewCount);
-            if (newReviewCount > (oldReviewCount || 0)) {
-                show_notification();
+function setReviewCount(reviews_available) {
+    let capped = reviews_available > 999 ? `${Math.floor(reviews_available / 1000)}K+` : reviews_available;
+    update_badge(capped);
+    storage.set({reviews_available});
+        // .then(() => show_notification());
+}
+function setRepeatingAlarm() {
+    storage.get()
+        .then(data => {
+            let delayInMinutes = data['update_interval'] || 1;
+            if (!data['update_interval']) {
+                storage.set({update_interval: delayInMinutes});
             }
+            browser.alarms.create(REFRESH_ALARM, { delayInMinutes });
         });
-    });
 }
-
-function set_repeating_alarm() {
-    storage.get('update_interval', function(data) {
-        if (!data.update_interval) {
-            storage.set({'update_interval': 1});
-            data.update_interval = 1;
-        }
-        chrome.alarms.create(REFRESH_ALARM, {
-            delayInMinutes: data.update_interval
-        });
-        timed_log('Refreshing in ' + data.update_interval + ' minute(s).');
-    });
-}
-
-function set_one_time_alarm(time) {
-    chrome.alarms.create(REFRESH_ALARM, {when: time} );
-    chrome.alarms.get(REFRESH_ALARM, function(alarm) {
-        var d = new Date(alarm.scheduledTime);
-        timed_log('Refreshing at: ' + d);
-    });
-}
-
-// If notifications are enabled, display a notification.
-function show_notification(custom_message) {
-    var title = chrome.i18n.getMessage('wanikaninotify_name');
-    var message = custom_message || chrome.i18n.getMessage('reviews_notification');
-    var type = (custom_message) ? "message" : "review";
-    var opt = {
-      type: "basic",
-      title: title,
-      message: message,
-      iconUrl: "icons/icon_128.png"
-    };
-    storage.get(["notifications", "notif_life"], function(data) {
-        var notif_life = data.notif_life;
-        if (data.notifications === "on") {
-            chrome.notifications.create(type, opt, function(id) {
-                if (typeof notif_life === "number") {
-                    chrome.alarms.create("notification", { when: Date.now() + notif_life*1000 });
-                }
-            })
-        }
-    });
+function setAlarm(when) {
+    browser.alarms.create(REFRESH_ALARM, {when});
+    browser.alarms.get(REFRESH_ALARM)
+        .then(alarm => console.log(`Refreshing at: ${new Date(alarm.scheduledTime)}`))
 }
 
 // Update the badge text.
@@ -195,7 +148,7 @@ function update_badge(badgeText) {
     if (!newBadgeText || newBadgeText === '0') {
         newBadgeText = '';
     }
-    chrome.browserAction.setBadgeText({ text: newBadgeText.toString() || '' });
+    browser.browserAction.setBadgeText({ text: newBadgeText.toString() || '' });
 }
 
 // Update the extension's title with the next review time.
@@ -212,92 +165,44 @@ function update_title(type, content) {
     } else if (type === 'string') {
         titleString = content;
     }
-    chrome.browserAction.setTitle({'title': titleString.toString() || '' });
-}
-
-// Open the options page on install.
-if (typeof chrome.runtime.onInstalled !== "undefined") {
-    chrome.runtime.onInstalled.addListener(function (details) {
-        if (details.reason === "install") {
-            // chrome.runtime.openOptionsPage();
-            browser.tabs.create({
-                "url": chrome.runtime.getURL("options.html")
-            });
-        }
-    });
+    browser.browserAction.setTitle({'title': titleString.toString() || '' });
 }
 
 // When the extension's icon is clicked:
-chrome.browserAction.onClicked.addListener(function() {
+browser.browserAction.onClicked.addListener(function() {
     // If no API key is saved, redirect to the options page. Else open a tab to WaniKani.
-    storage.get(["api_key", "reviews_available"], function(data) {
-        var api_key = data.api_key;
-        var reviews_available = data.reviews_available;
-        if (!api_key) {
-            // chrome.runtime.openOptionsPage();
-            browser.tabs.create({
-                "url": chrome.runtime.getURL("options.html")
-            });
-        } else if (!reviews_available || reviews_available === 0) {
+    storage.get().then(data => {
+        let {api_key, reviews_available} = data;
+        if (!api_key)
+            browser.runtime.openOptionsPage();
+        else if (!reviews_available)
             browser.tabs.create({url: WANIKANI_URL});
-        } else if (!browser.tabs.query({'title': 'WaniKani / Reviews'})) {
-            browser.tabs.create({url: WANIKANI_URL + "/review/session"});
-        };
-    });
-});
-
-if (typeof chrome.notifications.onClicked !== "undefined") {
-    // When a notification is clicked:
-    chrome.notifications.onClicked.addListener(function (notificationId) {
-        if (notificationId === "review") {
-            browser.tabs.create({url: WANIKANI_URL + "/review/session"});
-        } else if (notificationId === "lesson") {
-            browser.tabs.create({url: WANIKANI_URL + "/lesson/session"});
-        } else {
-            browser.tabs.create({url: WANIKANI_URL});
+        else {
+            browser.tabs.query({title: 'WaniKani / Reviews'})
+                .then(tabs => {
+                    if (!tabs.length)
+                        browser.tabs.create({url:`${WANIKANI_URL}/review/session`});
+                });
         }
-        chrome.notifications.clear(notificationId);
-        chrome.alarms.clear("notification");
-    });
-}
+    })
+});
 
 // When a "refresh" alarm goes off, fetch new data.
 chrome.alarms.onAlarm.addListener(function(alarm) {
     if (alarm.name === REFRESH_ALARM) {
-        fetch_reviews();
-    } else if (alarm.name === "notification") {
-        chrome.notifications.getAll(function(notifications) {
-            for (let type of Object.keys(notifications)) {
-                chrome.notifications.clear(type);
-            }
-        });
+        fetchReviews();
     }
 });
 
-// If the content page sends a message, update local data.
-chrome.runtime.onMessage.addListener(function(request) {
-    if (typeof request.reviews_available !== "undefined") {
-        set_review_count(request.reviews_available);
-        if (request.reviews_available === 0) {
-            var wait_for_update = chrome.i18n.getMessage('wait_for_update');
-            update_title('string', wait_for_update);
-            // allow 10 seconds for remote server to update values
-            set_one_time_alarm(Date.now() + 10000);
-        }
-    } else if (request.refresh === true) {
-        set_one_time_alarm(Date.now() + 10000);
-    }
-});
-
-chrome.storage.onChanged.addListener(function(changes) {
+browser.storage.onChanged.addListener(function(changes) {
     for (let key in changes) {
         if (changes.hasOwnProperty(key)) {
-            if (key === 'api_key') {
-                fetch_reviews();
+            if ((key === 'api_key' || key === 'update_interval') &&
+                changes[key].oldValue !== changes[key].newValue) {
+                fetchReviews(true);
             }
         }
     }
 });
 
-timed_log("background.js fetch_reviews");
-fetch_reviews(force=false);
+fetchReviews();

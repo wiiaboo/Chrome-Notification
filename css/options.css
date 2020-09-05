@@ -52,10 +52,10 @@ input[type="number"] {
 }
 
 input#api_key {
-    width: 32ch;
+    width: 36ch;
     padding: 4px 6px;
     border-radius: 8px;
-    text-align: center;
+    text-align: left;
     font-family: monospace;
 }
 

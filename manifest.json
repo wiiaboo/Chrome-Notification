@@ -37,4 +37,11 @@
         "default_icon": "icons/icon_48.png",
         "browser_style": false
     },
-    "web_accessible_resources": ["icons/icon_128.png"]
+    "web_accessible_resources": ["icons/icon_128.png"],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "@wanikani-notifier",
+            "strict_min_version": "53.0"
+        }
+    }
+}

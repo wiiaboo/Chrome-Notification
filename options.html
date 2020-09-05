@@ -10,9 +10,9 @@
 <h2>WaniKani Notifier</h2>
 
 <div class="control-group">
-    <label for="api_key"><a href="https://www.wanikani.com/settings/account#public-api-key" target="_blank" title="Go to your WaniKani account Settings for your Public v2 API Key">Public v2 API key</a></label>
+    <label for="api_key"><a href="https://www.wanikani.com/settings/personal_access_tokens" target="_blank" title="Go to your WaniKani account Settings for your Public v2 API Key">Personal Access Token</a></label>
     <div class="controls">
-        <input type="text" id="api_key" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" maxlength="36" placeholder="32 hexadecimal characters in UUID format">
+        <input type="text" id="api_key" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" maxlength="36" placeholder="v2 API Token">
     </div>
 </div>
 
@@ -23,18 +23,18 @@
     </div>
 </div>
 
-<div class="control-group">
+<div class="control-group" style="display: none">
     <label title="Enable or disable notifications">Notifications</label>
     <div class="controls" id="notifications">
-        <label class="radio"><input type="radio" name="notifications" value="on"> On</label><br>
-        <label class="radio"><input type="radio" name="notifications" value="off" checked> Off</label>
+        <label class="radio"><input readonly type="radio" name="notifications" value="on"> On</label><br>
+        <label class="radio"><input readonly type="radio" name="notifications" value="off" checked> Off</label>
     </div>
 </div>
 
-<div class="control-group">
+<div class="control-group" style="display: none">
     <label for="notif_life" title="Lifetime of notification if enabled">Notification closes after</label>
     <div class="controls">
-    <input type="number" name="notif_life" id="notif_life" value="5" min="1" max="30" title="Between 1 and 30 seconds" required> second(s)</div>
+    <input readonly type="number" name="notif_life" id="notif_life" value="5" min="1" max="30" title="Between 1 and 30 seconds" required> second(s)</div>
 </div>
 
 <div id="buttons">

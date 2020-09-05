@@ -3,50 +3,25 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-var API_VERSION = 'v1.4';
-var WANIKANI_URL = 'https://www.wanikani.com';
+const REFRESH_ALARM = 'refresh';
+const storage = browser.storage.sync || browser.storage.local;
 
 // Saves options to Chrome Sync.
 function save_options() {
-    var key_field = document.getElementById("api_key");
-    var api_key = key_field.value;
+    let api_key = document.getElementById("api_key").value;
+    let update_interval = parseInt(document.getElementById("update_interval").value, 10);
+    let notif_life = parseInt(document.getElementById("notif_life").value, 10);
+    let notifications = false;
 
-    chrome.alarms.clear("refresh");
+    browser.alarms.clear(REFRESH_ALARM);
 
-    // Test out the new api key.
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        var json = xhr.responseText;
-        json = JSON.parse(json);
-
-        if (json.error) {
-            // If there's an error, update the badge.
-            chrome.extension.getBackgroundPage().update_badge('!');
-            // Also, notify the user.
-            show_status('Sorry, that API key isn\'t valid. Please try again!');
-        } else {
-            // Store the api key in Chrome Sync.
-            save_settings({"api_key": api_key}, function() {
-                // Update status to let user know options were saved.
-                show_status('Your options have been saved. Thanks, ' + String(json.user_information.username) + '!');
-            });
-        }
-    };
-    var url = WANIKANI_URL + "/api/" + API_VERSION + "/user/" + encodeURIComponent(api_key) + "/study-queue";
-    xhr.open("GET", url);
-    xhr.send();
-
-    var update_elem = document.getElementById("update_interval");
-    var notif_life_elem = document.getElementById("notif_life");
-    var notif_elem = document.querySelector("#notifications :checked");
-
-    save_settings({
-        "update_interval": parseInt(update_elem.value, 10),
-        "notif_life": parseInt(notif_life_elem.value, 10),
-        "notifications": notif_elem.value
+    storage.set({api_key, update_interval, notif_life, notifications})
+    .then(() => browser.runtime.getBackgroundPage())
+    .then(backgroundPage => {
+        backgroundPage.getUserName().then(username => {
+            show_status(`Your options have been saved. Thanks, ${username}!`);
+        });
     });
-
-    chrome.extension.getBackgroundPage().show_notification("Test notification");
 }
 
 function save_settings(options, callback) {
@@ -90,10 +65,10 @@ function restore_api_key() {
 // Restore notification radio buttons.
 function restore_notifications() {
     chrome.storage.local.get("notifications", function(data) {
-        var notifications = data.notifications;
+        var notifications = data.notifications ? 'on' : 'off';
         var notif_elem = document.getElementById("notifications");
         if (notifications)
-            notif_elem.querySelector("input[value=" + notifications + "]").checked = true;
+            notif_elem.querySelector(`input[value=${notifications}]`).checked = true;
     });
 };
 
