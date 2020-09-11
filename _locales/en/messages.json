@@ -18,8 +18,12 @@
         }
     },
     "reviews_available_now": {
-        "message": "Reviews available!",
-        "description": "Button text when there are reviews to be done."
+        "message": "Reviews available: $1",
+        "description": "Button text when there are reviews available. Appended to 'lessons_available_now' if both are available."
+    },
+    "lessons_available_now": {
+        "message": "Lessons available: $1",
+        "description": "Button text when there are lessons to learn. Appended to 'reviews_available_now' if both are available."
     },
     "wait_for_update": {
         "message": "Waiting to know when is the next review...",
@@ -36,5 +40,29 @@
     "lessons_available": {
         "message": "lessons(s)",
         "description": "Button in popup label when lessons are available."
+    },
+    "enter_api_key": {
+        "message": "Click here to enter your API Key.",
+        "description": "Tooltip in button if API Key is not configured."
+    },
+    "openhome": {
+        "message": "Open WaniKani",
+        "description": "Label of Menu button to open WaniKani homepage."
+    },
+    "startReview": {
+        "message": "Start Review Session",
+        "description": "Label of Menu button to open a WaniKani Review Session."
+    },
+    "startLesson": {
+        "message": "Start Lesson Session",
+        "description": "Label of Menu button to open a WaniKani Lesson Session."
+    },
+    "refreshInformation": {
+        "message": "Refresh",
+        "description": "Label of Menu button to refresh WaniKani Notifier's information."
+    },
+    "openOptions": {
+        "message": "Options",
+        "description": "Label of Menu button to open WaniKani Notifier's Options."
     }
 }

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>WaniKani Notifier Options</title>
-    <script src="options.js"></script>
     <link rel="stylesheet" type="text/css" href="css/options.css">
 </head>
 <body>
@@ -12,22 +11,22 @@
 <div class="control-group">
     <label for="api_key"><a href="https://www.wanikani.com/settings/personal_access_tokens" target="_blank" title="Go to your WaniKani account Settings for your Public v2 API Key">Personal Access Token</a></label>
     <div class="controls">
-        <input type="text" id="api_key" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" maxlength="36" placeholder="v2 API Token">
+        <input type="text" id="api_key" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" maxlength="36" placeholder="v2 API Token" spellcheck="false" required>
     </div>
 </div>
 
 <div class="control-group">
     <label for="update_interval" title="Minimum interval between updates when there are reviews">Update interval</label>
     <div class="controls">
-        <input type="number" name="update_interval" id="update_interval" value="1" min="1" max="240" step="1" title="Between 1 and 240 minutes (4 hours)" required> minute(s)
+        <input type="number" name="update_interval" id="update_interval" value="15" min="1" max="240" step="1" title="Between 1 and 240 minutes (4 hours)" required> minute(s)
     </div>
 </div>
 
 <div class="control-group" style="display: none">
     <label title="Enable or disable notifications">Notifications</label>
     <div class="controls" id="notifications">
-        <label class="radio"><input readonly type="radio" name="notifications" value="on"> On</label><br>
-        <label class="radio"><input readonly type="radio" name="notifications" value="off" checked> Off</label>
+        <label class="radio"><input readonly type="radio" name="notifications" value="true"> On</label><br>
+        <label class="radio"><input readonly type="radio" name="notifications" value="false" checked> Off</label>
     </div>
 </div>
 
@@ -38,8 +37,11 @@
 </div>
 
 <div id="buttons">
-    <button id="save">Save</button> <button id="reset">Reset</button>
+    <button id="save">Save</button> <button id="restore">Restore</button> <button id="reset">Reset</button>
     <div id="status"></div>
 </div>
+
+<script src="options.js"></script>
+
 </body>
 </html>

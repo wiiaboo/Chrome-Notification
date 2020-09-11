@@ -1,103 +1,62 @@
 // Copyright (c) 2015, Derek Guenther
+// Copyright (c) 2020, Ricardo Constantino
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-const REFRESH_ALARM = 'refresh';
-const storage = browser.storage.sync || browser.storage.local;
-
-// Saves options to Chrome Sync.
-function save_options() {
-    let api_key = document.getElementById("api_key").value;
-    let update_interval = parseInt(document.getElementById("update_interval").value, 10);
-    let notif_life = parseInt(document.getElementById("notif_life").value, 10);
-    let notifications = false;
-
-    browser.alarms.clear(REFRESH_ALARM);
-
-    storage.set({api_key, update_interval, notif_life, notifications})
-    .then(() => browser.runtime.getBackgroundPage())
-    .then(backgroundPage => {
-        backgroundPage.getUserName().then(username => {
-            show_status(`Your options have been saved. Thanks, ${username}!`);
-        });
-    });
+const DEFAULT_OPTIONS = {
+    api_key: '',
+    update_interval: 15,
+    notifications: false,
+    notif_life: 5,
 }
 
-function save_settings(options, callback) {
-    chrome.storage.local.set(options, function() {
-        if (typeof callback === "function") {
-            callback();
-        }
-        if (typeof chrome.storage.sync !== "undefined") {
-            chrome.storage.sync.set(options);
-        }
-    });
-}
-
-// Restore all options to their form elements.
 function restore_options() {
     document.removeEventListener('DOMContentLoaded', restore_options, false);
-    if (typeof chrome.storage.sync !== "undefined") {
-        chrome.storage.sync.get(["api_key", "update_interval", "notifications"], function(options) {
-            if (options) {
-                chrome.storage.local.set(options);
-            }
-        });
-    }
-    restore_notifications();
-    restore_number("notif_life");
-    restore_number("update_interval");
-    restore_api_key();
-    bind_save_and_reset();
-}
+    browser.storage.sync.get(DEFAULT_OPTIONS)
+    .then(options => {
+        setValuesFromOptions(options);
 
-// Restore API key text box.
-function restore_api_key() {
-    chrome.storage.local.get("api_key", function(data) {
-        var api_key = data.api_key;
-        var key_field = document.getElementById("api_key");
-        if (api_key)
-            key_field.value = api_key;
+        document.querySelector('#save').addEventListener('click', save_options);
+        document.querySelector('#restore').addEventListener('click', restore_options);
+        document.querySelector('#reset').addEventListener('click', clear_options);
+        
+        return browser.storage.local.set(options)
     });
 }
+function save_options() {
+    browser.storage.local.set({
+        api_key: document.getElementById("api_key").value,
+        update_interval: parseInt(document.getElementById("update_interval").value, 10),
+        notif_life: parseInt(document.getElementById("notif_life").value, 10),
+        notifications: false
+    })
+    .then(() =>
+        browser.runtime.getBackgroundPage()
+        .then(bg => bg.updateUser()
+            .then(() => bg.getUser())
+            .then(data => {
+                if (data.last_response_status === 401) { show_status(`API Key is not valid!`); }
+                else if (data.username) { show_status(`Your options have been saved. Thanks, ${data.username}!`); }
+            })));
+}
+function clear_options() {
+    browser.storage.local.clear();
+    setValuesFromOptions(DEFAULT_OPTIONS);
+    show_status('Cleared local storage! Refreshing the page will reload options from synced storage.');
+}
 
-// Restore notification radio buttons.
-function restore_notifications() {
-    chrome.storage.local.get("notifications", function(data) {
-        var notifications = data.notifications ? 'on' : 'off';
-        var notif_elem = document.getElementById("notifications");
-        if (notifications)
-            notif_elem.querySelector(`input[value=${notifications}]`).checked = true;
-    });
-};
-
-// Restore update interval dropdown.
-function restore_number(name) {
-    chrome.storage.local.get(name, function(data) {
-        var value = data.hasOwnProperty(name) && data[name];
-        var elem = document.getElementById(name);
-        if (value && elem)
-            elem.value = value;
-    });
+function setValuesFromOptions(options) {
+    let { api_key, notifications, update_interval, notif_life } = options;
+    document.querySelector('#api_key').value = api_key;
+    document.querySelector(`#notifications input[value=${notifications}]`).checked = true;
+    document.querySelector('#notif_life').value = notif_life;
+    document.querySelector('#update_interval').value = update_interval;
 }
 
 function show_status(status) {
-    var statusEl = document.getElementById('status');
-    statusEl.textContent = status.toString();
-    setTimeout(function() {
-        statusEl.textContent = '';
-    }, 4000);
-}
-
-function clear_options() {
-    chrome.storage.local.clear();
-    show_status('Cleared local storage!');
-}
-
-function bind_save_and_reset() {
-    document.querySelector('#save').addEventListener('click', save_options);
-    document.querySelector('#reset').addEventListener('click', clear_options);
+    document.querySelector('#status').textContent = status;
+    setTimeout(() => document.querySelector('#status').textContent = '', 10000);
 }
 
 document.addEventListener('DOMContentLoaded', restore_options, false);

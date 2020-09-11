@@ -30,6 +30,7 @@
         "notifications",
         "storage",
         "tabs",
+        "contextMenus",
         "https://api.wanikani.com/v2/*"
     ],
     "browser_action": {
