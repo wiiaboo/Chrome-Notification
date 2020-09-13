@@ -1,0 +1,6 @@
+{
+    "extends": "eslint-config-webextension",
+    "globals": {
+        "browser": true
+    }
+}
