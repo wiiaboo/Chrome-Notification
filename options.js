@@ -10,12 +10,15 @@ const DEFAULT_OPTIONS = {
     notifications: false,
     notif_life: 5,
 }
-
+// console.log(`Opened Options page`);
 function restore_options() {
     document.removeEventListener('DOMContentLoaded', restore_options, false);
+    // console.log(`restore_options`);
     browser.storage.sync.get(DEFAULT_OPTIONS)
     .then(options => {
-        setValuesFromOptions(options);
+        // unitialized browser.storage.sync does NOT use default values
+        if (options.api_key === null) Object.assign(options, DEFAULT_OPTIONS);
+        setOptions(options);
 
         document.querySelector('#save').addEventListener('click', save_options);
         document.querySelector('#restore').addEventListener('click', restore_options);
@@ -25,38 +28,42 @@ function restore_options() {
     });
 }
 function save_options() {
-    browser.storage.local.set({
-        api_key: document.getElementById("api_key").value,
-        update_interval: parseInt(document.getElementById("update_interval").value, 10),
-        notif_life: parseInt(document.getElementById("notif_life").value, 10),
-        notifications: false
-    })
-    .then(() =>
-        browser.runtime.getBackgroundPage()
-        .then(bg => bg.updateUser()
-            .then(() => bg.getUser())
-            .then(data => {
-                if (data.last_response_status === 401) { show_status(`API Key is not valid!`); }
-                else if (data.username) { show_status(`Your options have been saved. Thanks, ${data.username}!`); }
-            })));
+    browser.storage.local.set(readOptions())
+    .then(() => browser.runtime.getBackgroundPage())
+    .then(bg => bg.updateUser(true)
+        .then(() => bg.getUser())
+        .then(user => {
+            if (user.last_response_status === 401) { show_status(`API Key is not valid!`); }
+            else if (user.username) { show_status(`Your options have been saved. Thanks, ${user.username}!`); }
+        }));
 }
 function clear_options() {
     browser.storage.local.clear();
-    setValuesFromOptions(DEFAULT_OPTIONS);
-    show_status('Cleared local storage! Refreshing the page will reload options from synced storage.');
+    setOptions(DEFAULT_OPTIONS);
+    show_status('Cleared settings.');
 }
 
-function setValuesFromOptions(options) {
+function setOptions(options) {
+    // console.log(`setOptions:`, options)
     let { api_key, notifications, update_interval, notif_life } = options;
     document.querySelector('#api_key').value = api_key;
-    document.querySelector(`#notifications input[value=${notifications}]`).checked = true;
+    document.querySelector(`#notifications input[value=${notifications || false}]`).checked = true;
     document.querySelector('#notif_life').value = notif_life;
     document.querySelector('#update_interval').value = update_interval;
+}
+function readOptions() {
+    // console.log(`readOptions`)
+    return {
+        api_key: document.querySelector("#api_key")?.value,
+        update_interval: parseInt(document.querySelector("#update_interval").value, 10),
+        notif_life: parseInt(document.querySelector("#notif_life").value, 10),
+        notifications:  document.querySelector('#notifications input:checked')?.value
+    }
 }
 
 function show_status(status) {
     document.querySelector('#status').textContent = status;
-    setTimeout(() => document.querySelector('#status').textContent = '', 10000);
+    setTimeout(() => document.querySelector('#status').textContent = '', 5000);
 }
 
 document.addEventListener('DOMContentLoaded', restore_options, false);

@@ -4,17 +4,15 @@
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
 
-var availableReviews = document.getElementById('available-count');
-var lessonEnd = document.getElementById('lesson-ready-end');
+const availableReviews = document.querySelector('#available-count');
+const lessonEnd = document.querySelector('#lesson-ready-end');
 
-var observer = new MutationObserver(function reviewSessionCallback() {
-    chrome.runtime.sendMessage({reviews_available: parseInt(availableReviews.innerText, 10)});
-});
-
-if (availableReviews) {
-    observer.observe(availableReviews, { childList: true, subtree: false });
-} else if (lessonEnd) {
-    lessonEnd.addEventListener('click', function() {
-        chrome.runtime.sendMessage({refresh: true});
-    });
-}
+if (availableReviews)
+    new MutationObserver(mutations => {
+        for (let mut of mutations) {
+            if (!mut.addedNodes.length || !mut.addedNodes[0].data) continue;
+            browser.storage.local.set({reviews_available: parseInt(mut.addedNodes[0].data, 10)})
+        }
+    }).observe(availableReviews, { childList: true });
+if (lessonEnd)
+    lessonEnd.addEventListener('click', () => browser.runtime.sendMessage({command: 'update-summary'}));

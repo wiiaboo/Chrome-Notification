@@ -16,18 +16,15 @@
         "page": "options.html",
         "open_in_tab": true
     },
-    "content_scripts": [
-    {
+    "content_scripts": [{
         "matches": [
             "*://www.wanikani.com/review/session",
             "*://www.wanikani.com/lesson/session"
         ],
         "js": ["content.js"]
-    }
-    ],
+    }],
     "permissions": [
         "alarms",
-        "notifications",
         "storage",
         "tabs",
         "contextMenus",
@@ -42,7 +39,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "@wanikani-notifier",
-            "strict_min_version": "53.0"
+            "strict_min_version": "57.0"
         }
     }
 }
