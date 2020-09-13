@@ -7,8 +7,6 @@
 const DEFAULT_OPTIONS = {
     api_key: '',
     update_interval: 15,
-    notifications: false,
-    notif_life: 5,
 }
 // console.log(`Opened Options page`);
 function restore_options() {
@@ -45,19 +43,15 @@ function clear_options() {
 
 function setOptions(options) {
     // console.log(`setOptions:`, options)
-    let { api_key, notifications, update_interval, notif_life } = options;
+    let { api_key, update_interval } = options;
     document.querySelector('#api_key').value = api_key;
-    document.querySelector(`#notifications input[value=${notifications || false}]`).checked = true;
-    document.querySelector('#notif_life').value = notif_life;
     document.querySelector('#update_interval').value = update_interval;
 }
 function readOptions() {
     // console.log(`readOptions`)
     return {
         api_key: document.querySelector("#api_key")?.value,
-        update_interval: parseInt(document.querySelector("#update_interval").value, 10),
-        notif_life: parseInt(document.querySelector("#notif_life").value, 10),
-        notifications:  document.querySelector('#notifications input:checked')?.value
+        update_interval: parseInt(document.querySelector("#update_interval")?.value, 10),
     }
 }
 

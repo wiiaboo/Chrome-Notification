@@ -51,16 +51,18 @@ function setAlarm(when) {
     // browser.alarms.get(REFRESH_ALARM).then(alarm => alarm && console.log(`set alarm`, when, new Date(alarm.scheduledTime)));
 }
 function updateBadge() {
-    browser.storage.local.get()
+    return browser.storage.local.get()
     .then(data => {
-        let text = !data.api_key ? '!'
-            : data.reviews_available < 1 ? ''
+        if (data.api_key == null || data.reviews_available == null) {
+            browser.browserAction.setBadgeText({ text: '!' });
+            browser.browserAction.setTitle({ title: browser.i18n.getMessage('enter_api_key') });
+            return;
+        }
+        let text = data.reviews_available < 1 ? ''
             : data.reviews_available > 999 ? `${Math.floor(data.reviews_available / 1000)}K+`
             : data.reviews_available.toString(10);
-        let title;
-        if (!data.api_key) {
-            title = browser.i18n.getMessage('enter_api_key');
-        } else if (data.next_reviews_at || data.lessons_available) {
+        let title = null;
+        if (data.next_reviews_at || data.lessons_available) {
             let nextReviewDate = new Date(data.next_reviews_at);
             if (data.next_reviews_at && nextReviewDate > Date.now() + 30000) {
                 title = browser.i18n.getMessage('next_review', nextReviewDate.toLocaleString());
@@ -143,6 +145,10 @@ browser.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync') return;
     let changedItems = Object.keys(changes);
     for (let item of changedItems) {
+        if (item === 'api_key') {
+            updateUser()
+            updateSummary()
+        }
         if (item === 'update_interval')
             browser.alarms.get(REFRESH_ALARM).then(alarm => { if (alarm && alarm.periodInMinutes) setAlarm(); });
     }
