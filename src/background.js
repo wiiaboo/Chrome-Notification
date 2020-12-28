@@ -10,7 +10,7 @@ const WANIKANI_API_BASE = 'https://api.wanikani.com/v2';
 const WANIKANI_API_VERSION = '20170710';
 const ALLOWED_RESOURCES = { USER: 'user', SUMMARY: 'summary' };
 const MINIMUM_RESOURCE_COOLDOWN = 5 * 1000;
-const SYNCED_ITEMS = ['api_key', 'notifications', 'update_interval', 'notif_life'];
+const SYNCED_ITEMS = ['api_key', 'update_interval'];
 const COMMON_CACHED_ITEMS = { data_requested_at: {}, data_received_at: {}, data_updated_at: {}, last_response_status: {}, etag: {} };
 const RESOURCES_DEFAULTS = {
     user: { username: null, },
