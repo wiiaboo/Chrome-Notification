@@ -18,8 +18,9 @@
     },
     "content_scripts": [{
         "matches": [
-            "*://www.wanikani.com/review/session",
-            "*://www.wanikani.com/lesson/session"
+            "https://www.wanikani.com/review/session",
+            "https://www.wanikani.com/lesson/session",
+            "https://www.wanikani.com/settings/personal_access_tokens"
         ],
         "js": ["content.js"]
     }],

@@ -58,7 +58,7 @@ function setOptions(options) {
 function readOptions() {
     // console.log(`readOptions`)
     return {
-        api_key: document.querySelector("#api_key")?.value,
+        api_key: String(document.querySelector("#api_key")?.value || '').trim(),
         update_interval: parseInt(document.querySelector("#update_interval")?.value, 10),
     }
 }

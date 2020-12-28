@@ -6,6 +6,7 @@
 
 const availableReviews = document.querySelector('#available-count');
 const lessonEnd = document.querySelector('#lesson-ready-end');
+const apiKeyList = document.querySelector('#personal-access-tokens-list');
 
 if (availableReviews)
     new MutationObserver(mutations => {
@@ -16,3 +17,12 @@ if (availableReviews)
     }).observe(availableReviews, { childList: true });
 if (lessonEnd)
     lessonEnd.addEventListener('click', () => browser.runtime.sendMessage({command: 'update-summary'}));
+if (apiKeyList)
+    apiKeyList.querySelectorAll('tbody tr').forEach(a => {
+        let k = a.querySelector('code').textContent;
+        let b = document.createElement('a');
+        b.textContent = 'Use in Wanikani Notifier';
+        b.classList.value = 'btn btn-small btn-info';
+        b.addEventListener('click', () => browser.runtime.sendMessage({command: 'set-api-key', value: k}));
+        a.querySelector('.personal-access-token-actions').insertAdjacentElement('afterbegin', b);
+    });

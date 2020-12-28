@@ -168,8 +168,10 @@ browser.contextMenus.onClicked.addListener(info => {
 });
 browser.runtime.onMessage.addListener((message, sender, respond) => {
     // console.log(`BG got message`, message, sender);
-    if (message === 'update-summary')
+    if (message.command === 'update-summary')
         updateSummary(true);
+    if (message.command === 'set-api-key')
+        browser.storage.local.set({api_key: message.value})
     return true;
 });
 
