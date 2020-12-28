@@ -41,7 +41,10 @@ function getSummary() {
     return getResource(ALLOWED_RESOURCES.SUMMARY);
 }
 function openPageOnce(title, url) {
-    browser.tabs.query({ title }).then(tabs => { if (tabs.length < 1) browser.tabs.create({ url }); })
+    browser.tabs.query({ title }).then(tabs => {
+        if (tabs.length < 1) browser.tabs.create({ url });
+        else browser.tabs.highlight({tabs: tabs.map(t => t.index)})
+    })
 }
 
 function setAlarm(when) {
