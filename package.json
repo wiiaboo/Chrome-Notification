@@ -1,12 +1,18 @@
 {
   "license": "Apache-2.0",
-  "dependencies": {
+  "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "6.x",
     "eslint-config-webextension": "^0.6.1",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "^7.20.6",
-    "eslint-plugin-react-hooks": "2.x"
+    "eslint-plugin-react-hooks": "2.x",
+    "web-ext": "5.x"
+  },
+  "scripts": {
+      "start": "web-ext run --source-dir ./src --firefox=firefoxdeveloperedition",
+      "start:firefox": "web-ext run --source-dir ./src",
+      "lint": "web-ext lint --source-dir ./src"
   }
 }
