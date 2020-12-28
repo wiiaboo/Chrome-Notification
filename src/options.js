@@ -21,6 +21,7 @@ function restore_options() {
         document.querySelector('#save').addEventListener('click', save_options);
         document.querySelector('#restore').addEventListener('click', restore_options);
         document.querySelector('#reset').addEventListener('click', clear_options);
+        document.querySelector('#wipe').addEventListener('click', wipe_options);
         
         return browser.storage.local.set(options)
     });
@@ -39,6 +40,13 @@ function clear_options() {
     browser.storage.local.clear();
     setOptions(DEFAULT_OPTIONS);
     show_status('Cleared settings.');
+}
+
+function wipe_options() {
+    browser.storage.sync.clear();
+    browser.storage.local.clear();
+    setOptions(DEFAULT_OPTIONS);
+    show_status('Wiped all settings.');
 }
 
 function setOptions(options) {
